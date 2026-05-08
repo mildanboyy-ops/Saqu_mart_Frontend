@@ -105,14 +105,14 @@ export default function Dashboard() {
                 
                 <div className="space-y-3">
                   <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 text-[11px] font-bold uppercase tracking-[0.2em] border border-white/10 backdrop-blur-md text-emerald-400">
-                    <Shield className="h-3.5 w-3.5" /> {user?.role} Mode Active
+                    <Shield className="h-3.5 w-3.5" /> Akses {user?.role} Aktif
                   </div>
                   <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
-                    Hello, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-primary">{user?.name.split(' ')[0]}!</span>
+                    Halo, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-primary">{user?.name.split(' ')[0]}!</span>
                   </h2>
                   <div className="flex items-center gap-3 text-white/60">
                     <div className="h-1 w-1 rounded-full bg-emerald-500" />
-                    <p className="text-sm font-medium italic">"Kesuksesan berawal dari kejujuran dan keberkahan transaksi."</p>
+                    <p className="text-sm font-medium italic">"Kejujuran adalah kunci keberkahan setiap transaksi."</p>
                   </div>
                 </div>
               </div>
@@ -143,12 +143,12 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:border-primary/50 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
+            <CardTitle className="text-sm font-medium">Pemasukan Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Rp {totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">Profit: Rp {totalProfit.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">Laba: Rp {totalProfit.toLocaleString()}</p>
           </CardContent>
         </Card>
         <Card className="hover:border-primary/50 transition-colors">
@@ -191,8 +191,8 @@ export default function Dashboard() {
               <Users2 className="h-8 w-8" />
             </div>
             <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Member Terdaftar</p>
-              <h3 className="text-4xl font-black text-primary">{members.length} <span className="text-lg font-normal text-muted-foreground">Pelanggan</span></h3>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Jumlah Member</p>
+              <h3 className="text-4xl font-black text-primary">{members.length} <span className="text-lg font-normal text-muted-foreground">Orang</span></h3>
             </div>
           </CardContent>
         </Card>
@@ -203,7 +203,7 @@ export default function Dashboard() {
               <Wallet2 className="h-8 w-8" />
             </div>
             <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Saldo Deposit Member</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Tabungan Member</p>
               <h3 className="text-4xl font-black text-green-600">Rp {totalDeposits.toLocaleString()}</h3>
             </div>
           </CardContent>

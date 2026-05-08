@@ -15,8 +15,8 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       storeName: 'SAQU MART (Sahabat Quran Mart)',
-      storeAddress: 'Jl. Pesantren No. 123, Kota Bandung',
-      storePhone: '0812-3456-7890',
+      storeAddress: 'Bumi Sawangan Indah 2 Blok D2 No 90, RT.005/RW.010, Pengasinan, Kec. Sawangan, Kota Depok, Jawa Barat 16518',
+      storePhone: '0858-1754-1154',
       taxRate: 0,
       printerName: 'EPSON TM-T88V',
       receiptFooter: 'Terima kasih telah berbelanja!',

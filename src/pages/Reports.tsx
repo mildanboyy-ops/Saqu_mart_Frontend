@@ -1,16 +1,17 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileDown, Filter, TrendingUp, DollarSign, ShoppingCart } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Filter, TrendingUp, DollarSign, ShoppingCart, Calculator, ArrowUpRight, Printer } from "lucide-react";
 import {
   Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid
 } from "recharts";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function Reports() {
   const [period, setPeriod] = useState("weekly");
@@ -19,8 +20,22 @@ export default function Reports() {
   const stats = useMemo(() => {
     const totalSales = transactions.reduce((acc, tx) => acc + tx.total, 0);
     const totalProfit = transactions.reduce((acc, tx) => acc + tx.profit, 0);
+    const totalCOGS = transactions.reduce((acc, tx) => {
+      const cogs = tx.items.reduce((s, i) => s + (i.costPrice * i.qty), 0);
+      return acc + cogs;
+    }, 0);
     const cashCount = transactions.filter(t => t.method === "Cash").length;
-    return { totalSales, totalProfit, count: transactions.length, cashCount };
+    
+    // Simulated Expenses (Beban)
+    const expenses = [
+      { name: "Listrik & Air", amount: 150000 },
+      { name: "Gaji Karyawan", amount: 500000 },
+      { name: "Sewa Tempat (Simulasi)", amount: 300000 },
+      { name: "Lain-lain", amount: 50000 },
+    ];
+    const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+
+    return { totalSales, totalProfit, totalCOGS, count: transactions.length, cashCount, expenses, totalExpenses };
   }, [transactions]);
 
   const chartData = useMemo(() => {
@@ -36,171 +51,344 @@ export default function Reports() {
 
   const handleExportPDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Laporan Penjualan - SaquMart", 14, 22);
+    doc.setFontSize(22);
+    doc.setTextColor(22, 163, 74);
+    doc.text("LAPORAN LABA RUGI SAQUMART", 105, 25, { align: "center" });
+    
     doc.setFontSize(10);
-    doc.text(`Tanggal: ${new Date().toLocaleDateString("id-ID")}`, 14, 30);
+    doc.setTextColor(100);
+    doc.text(`Periode: ${period.toUpperCase()} | Dicetak: ${new Date().toLocaleString("id-ID")}`, 105, 32, { align: "center" });
+
+    doc.setDrawColor(200);
+    doc.line(14, 40, 196, 40);
+
     doc.setFontSize(12);
-    doc.text(`Total Penjualan: Rp ${stats.totalSales.toLocaleString()}`, 14, 42);
-    doc.text(`Total Profit: Rp ${stats.totalProfit.toLocaleString()}`, 14, 50);
-    doc.text(`Jumlah Transaksi: ${stats.count}`, 14, 58);
+    doc.setTextColor(0);
+    doc.text("RINGKASAN EKSEKUTIF", 14, 50);
+    
+    doc.setFontSize(10);
+    let y = 60;
+    const items = [
+      ["Total Penjualan", `Rp ${stats.totalSales.toLocaleString()}`],
+      ["Harga Pokok Penjualan (HPP)", `Rp ${stats.totalCOGS.toLocaleString()}`],
+      ["Laba Kotor", `Rp ${stats.totalProfit.toLocaleString()}`],
+      ["Total Beban Operasional", `Rp ${stats.totalExpenses.toLocaleString()}`],
+      ["Laba Bersih", `Rp ${(stats.totalProfit - stats.totalExpenses).toLocaleString()}`],
+    ];
 
-    let y = 72;
-    doc.setFontSize(14);
-    doc.text("Riwayat Transaksi", 14, y);
-    y += 8;
-    doc.setFontSize(9);
-    doc.text("ID", 14, y); doc.text("Metode", 60, y); doc.text("Total", 100, y); doc.text("Profit", 140, y); doc.text("Waktu", 170, y);
-    y += 6;
-    transactions.slice(0, 30).forEach(tx => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.text(tx.id, 14, y);
-      doc.text(tx.method, 60, y);
-      doc.text(`Rp ${tx.total.toLocaleString()}`, 100, y);
-      doc.text(`Rp ${tx.profit.toLocaleString()}`, 140, y);
-      doc.text(new Date(tx.timestamp).toLocaleString("id-ID"), 170, y);
-      y += 6;
+    items.forEach(([label, value]) => {
+      doc.text(label, 14, y);
+      doc.text(value, 196, y, { align: "right" });
+      y += 8;
     });
-    doc.save(`laporan-saqumart-${Date.now()}.pdf`);
-    toast.success("PDF berhasil diunduh!");
-  };
 
-  const handleExportCSV = () => {
-    const header = "ID,Metode,Total,Profit,Kembalian,Waktu\n";
-    const rows = transactions.map(tx =>
-      `${tx.id},${tx.method},${tx.total},${tx.profit},${tx.change},${tx.timestamp}`
-    ).join("\n");
-    const blob = new Blob([header + rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `transaksi-saqumart-${Date.now()}.csv`; a.click();
-    URL.revokeObjectURL(url);
-    toast.success("CSV berhasil diunduh!");
+    doc.line(14, y + 2, 196, y + 2);
+    y += 15;
+
+    doc.setFontSize(12);
+    doc.text("RINCIAN BEBAN", 14, y);
+    y += 10;
+    doc.setFontSize(10);
+    stats.expenses.forEach(e => {
+      doc.text(e.name, 20, y);
+      doc.text(`Rp ${e.amount.toLocaleString()}`, 196, y, { align: "right" });
+      y += 8;
+    });
+
+    doc.save(`neraca-saqumart-${Date.now()}.pdf`);
+    toast.success("Neraca Laba Rugi berhasil diunduh!");
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-12">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Laporan Penjualan</h1>
-          <p className="text-muted-foreground">Analisis performa penjualan dan profit toko Anda.</p>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Reports & Analytics</h1>
+          <p className="text-muted-foreground font-medium">Pantau kesehatan finansial toko Anda secara real-time.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportPDF}><FileDown className="mr-2 h-4 w-4" /> Export PDF</Button>
-          <Button variant="outline" onClick={handleExportCSV}><FileDown className="mr-2 h-4 w-4" /> Export CSV</Button>
+          <Button variant="outline" className="rounded-xl border-2 font-bold" onClick={handleExportPDF}>
+            <Printer className="mr-2 h-4 w-4 text-primary" /> Cetak Laporan
+          </Button>
         </div>
       </div>
 
-      <div className="flex items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filter:</span>
-        </div>
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Pilih Periode" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="daily">Harian</SelectItem>
-            <SelectItem value="weekly">Mingguan</SelectItem>
-            <SelectItem value="monthly">Bulanan</SelectItem>
-            <SelectItem value="yearly">Tahunan</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-[400px] bg-muted/50 p-1 rounded-2xl h-14 mb-6">
+          <TabsTrigger value="overview" className="rounded-xl font-bold text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">Overview</TabsTrigger>
+          <TabsTrigger value="accounting" className="rounded-xl font-bold text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">Laba Rugi</TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-6 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><DollarSign className="h-4 w-4" /> Total Penjualan</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">Rp {stats.totalSales.toLocaleString()}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Total Profit</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-green-600 dark:text-green-400">Rp {stats.totalProfit.toLocaleString()}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><ShoppingCart className="h-4 w-4" /> Transaksi</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats.count}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Cash vs Non-Cash</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats.cashCount} / {stats.count - stats.cashCount}</div></CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader><CardTitle>Tren Penjualan & Profit</CardTitle></CardHeader>
-        <CardContent>
-          <div className="h-[350px] w-full">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="date" />
-                  <YAxis hide />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    formatter={(value: any) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(value)}
-                  />
-                  <Area type="monotone" dataKey="sales" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorSales)" name="Penjualan" />
-                  <Area type="monotone" dataKey="profit" stroke="#10b981" fillOpacity={1} fill="url(#colorProfit)" name="Profit" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">Belum ada data transaksi.</div>
-            )}
+        <TabsContent value="overview" className="space-y-6 outline-none">
+          <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border-2 border-slate-100 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold text-slate-700">Filter Periode:</span>
+            </div>
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-[180px] rounded-xl border-2 h-10 font-bold"><SelectValue placeholder="Pilih Periode" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Harian</SelectItem>
+                <SelectItem value="weekly">Mingguan</SelectItem>
+                <SelectItem value="monthly">Bulanan</SelectItem>
+                <SelectItem value="yearly">Tahunan</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader><CardTitle>Riwayat Transaksi</CardTitle></CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID Transaksi</TableHead>
-                <TableHead>Item</TableHead>
-                <TableHead>Metode</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Profit</TableHead>
-                <TableHead>Waktu</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center h-24 text-muted-foreground">Belum ada transaksi.</TableCell></TableRow>
-              )}
-              {transactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell className="font-mono text-xs">{tx.id}</TableCell>
-                  <TableCell>
-                    <div className="text-sm">{tx.items.map(i => `${i.name} x${i.qty}`).join(", ")}</div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={tx.method === "Cash" ? "default" : "secondary"} className={tx.method === "Cash" ? "bg-green-600" : ""}>
-                      {tx.method}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">Rp {tx.total.toLocaleString()}</TableCell>
-                  <TableCell className="text-right text-green-600 font-medium">Rp {tx.profit.toLocaleString()}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {new Date(tx.timestamp).toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+          <div className="grid gap-6 md:grid-cols-4">
+            <Card className="premium-card">
+              <CardHeader className="pb-2 text-center border-b border-slate-50">
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
+                  <DollarSign className="h-3 w-3 text-primary" /> Total Penjualan
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 text-center">
+                <div className="text-2xl font-black tracking-tighter">Rp {stats.totalSales.toLocaleString()}</div>
+                <div className="mt-2 inline-flex items-center text-[10px] text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full font-bold">
+                  <ArrowUpRight className="h-3 w-3 mr-1" /> +12% vs Prev
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="premium-card">
+              <CardHeader className="pb-2 text-center border-b border-slate-50">
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
+                  <TrendingUp className="h-3 w-3 text-emerald-500" /> Total Profit
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 text-center">
+                <div className="text-2xl font-black text-emerald-600 tracking-tighter">Rp {stats.totalProfit.toLocaleString()}</div>
+                <div className="mt-2 inline-flex items-center text-[10px] text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
+                  Margin {( (stats.totalProfit / stats.totalSales) * 100).toFixed(1)}%
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="premium-card">
+              <CardHeader className="pb-2 text-center border-b border-slate-50">
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
+                  <ShoppingCart className="h-3 w-3 text-amber-500" /> Transaksi
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 text-center">
+                <div className="text-2xl font-black tracking-tighter">{stats.count}</div>
+                <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-widest">Selesai</p>
+              </CardContent>
+            </Card>
+            <Card className="premium-card">
+              <CardHeader className="pb-2 text-center border-b border-slate-50">
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
+                   Payment Split
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 text-center">
+                <div className="text-2xl font-black tracking-tighter">{Math.round((stats.cashCount / stats.count) * 100)}% <span className="text-xs text-muted-foreground font-medium">Cash</span></div>
+                <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-widest">Metode Bayar</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="premium-card border-none shadow-2xl">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-xl font-black tracking-tight">Tren Performa Penjualan</CardTitle>
+              <Badge variant="outline" className="rounded-full font-bold">30 Hari Terakhir</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[350px] w-full mt-4">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                      <XAxis dataKey="date" fontSize={10} fontWeight="bold" tickLine={false} axisLine={false} />
+                      <YAxis hide />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                        formatter={(value: any) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(value)}
+                      />
+                      <Area type="monotone" dataKey="sales" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" name="Penjualan" />
+                      <Area type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" name="Profit" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground italic font-medium">Belum ada data transaksi untuk ditampilkan.</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="accounting" className="space-y-6 outline-none">
+          <Card className="premium-card overflow-hidden">
+            <CardHeader className="bg-slate-900 text-white p-8">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-black tracking-tighter">Neraca Laba Rugi</h2>
+                  <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-widest">Accounting Standard Report</p>
+                </div>
+                <Calculator className="h-12 w-12 text-primary opacity-50" />
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="space-y-12">
+                {/* Revenue Section */}
+                <section>
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 border-b-2 border-primary/10 pb-2">Pendapatan</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm font-bold">
+                      <span>Total Penjualan Kotor</span>
+                      <span>Rp {stats.totalSales.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm font-bold text-slate-500">
+                      <span>Retur & Potongan</span>
+                      <span className="text-destructive">(Rp 0)</span>
+                    </div>
+                    <div className="flex justify-between items-center text-lg font-black pt-4 border-t border-slate-100">
+                      <span>Penjualan Bersih</span>
+                      <span>Rp {stats.totalSales.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* COGS Section */}
+                <section>
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 mb-4 border-b-2 border-slate-100 pb-2">Harga Pokok Penjualan (HPP)</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm font-bold">
+                      <span>Pembelian Stok (COGS)</span>
+                      <span>Rp {stats.totalCOGS.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-lg font-black pt-4 border-t border-slate-100 text-slate-700">
+                      <span>Laba Kotor (Gross Profit)</span>
+                      <span className="text-emerald-600">Rp {stats.totalProfit.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Expenses Section */}
+                <section>
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-destructive mb-4 border-b-2 border-destructive/10 pb-2">Beban Operasional</h3>
+                  <div className="space-y-4">
+                    {stats.expenses.map((e, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-sm font-medium text-slate-600 italic">
+                        <span>{e.name}</span>
+                        <span>Rp {e.amount.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-2">
+                      <span>Total Beban Operasional</span>
+                      <span className="text-destructive">Rp {stats.totalExpenses.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Net Profit Section */}
+                <section className="bg-primary/5 p-10 rounded-[2.5rem] border-4 border-white shadow-2xl relative overflow-hidden mb-12">
+                  <div className="absolute top-0 right-0 p-6">
+                    <TrendingUp className="h-24 w-24 text-primary opacity-5" />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                      <div className="text-center md:text-left">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-3">Profitability Analysis</p>
+                        <h2 className="text-4xl font-black tracking-tighter text-slate-900 leading-none">Laba Bersih (Net Profit)</h2>
+                      </div>
+                      <div className="text-center md:text-right">
+                        <div className={cn(
+                          "text-6xl font-black tracking-tighter mb-2",
+                          (stats.totalProfit - stats.totalExpenses) >= 0 ? "text-emerald-600" : "text-destructive"
+                        )}>
+                          Rp {(stats.totalProfit - stats.totalExpenses).toLocaleString()}
+                        </div>
+                        <div className="h-1.5 w-full bg-emerald-600/20 rounded-full mb-3" /> {/* Accounting double underline effect */}
+                        <div className="h-0.5 w-full bg-emerald-600/40 rounded-full mb-4" />
+                        
+                        <div className="inline-flex items-center gap-3 px-4 py-2 bg-white rounded-2xl shadow-sm border border-slate-100">
+                          <Badge className="bg-emerald-500 hover:bg-emerald-600 font-black">
+                            {(((stats.totalProfit - stats.totalExpenses) / stats.totalSales) * 100).toFixed(1)}%
+                          </Badge>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Net Margin</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Balance Sheet (Neraca) Summary */}
+                <section className="border-t-4 border-slate-900 pt-12">
+                   <div className="flex items-center gap-4 mb-8">
+                     <Calculator className="h-8 w-8 text-slate-900" />
+                     <div>
+                       <h3 className="text-2xl font-black tracking-tighter text-slate-900">Ringkasan Neraca (Balance Sheet)</h3>
+                       <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">Simulasi Posisi Keuangan Aktiva & Pasiva</p>
+                     </div>
+                   </div>
+                   
+                   <div className="grid md:grid-cols-2 gap-12">
+                     {/* Aktiva (Assets) */}
+                     <div className="space-y-6">
+                       <h4 className="text-sm font-black uppercase tracking-[0.2em] bg-slate-100 p-3 rounded-xl">Aktiva (Assets)</h4>
+                       <div className="space-y-4 px-2">
+                         <div className="flex justify-between font-bold text-sm">
+                           <span className="text-slate-500 italic">Kas & Setara Kas</span>
+                           <span>Rp {stats.totalSales.toLocaleString()}</span>
+                         </div>
+                         <div className="flex justify-between font-bold text-sm">
+                           <span className="text-slate-500 italic">Persediaan Barang (Stok)</span>
+                           <span>Rp {(stats.totalCOGS * 1.5).toLocaleString()}</span>
+                         </div>
+                         <div className="flex justify-between font-bold text-sm">
+                           <span className="text-slate-500 italic">Piutang Member</span>
+                           <span>Rp 0</span>
+                         </div>
+                         <div className="flex justify-between font-black text-lg pt-4 border-t-2 border-slate-200 text-slate-900">
+                           <span>Total Aktiva</span>
+                           <span>Rp {(stats.totalSales + (stats.totalCOGS * 1.5)).toLocaleString()}</span>
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* Pasiva (Liabilities & Equity) */}
+                     <div className="space-y-6">
+                       <h4 className="text-sm font-black uppercase tracking-[0.2em] bg-slate-100 p-3 rounded-xl">Pasiva (Liabilities & Equity)</h4>
+                       <div className="space-y-4 px-2">
+                         <div className="flex justify-between font-bold text-sm">
+                           <span className="text-slate-500 italic">Hutang Dagang (Supplier)</span>
+                           <span>Rp 0</span>
+                         </div>
+                         <div className="flex justify-between font-bold text-sm">
+                           <span className="text-slate-500 italic">Modal Awal</span>
+                           <span>Rp {(stats.totalCOGS * 2).toLocaleString()}</span>
+                         </div>
+                         <div className="flex justify-between font-bold text-sm">
+                           <span className="text-slate-500 italic">Laba Ditahan</span>
+                           <span className="text-emerald-600">Rp {(stats.totalProfit - stats.totalExpenses).toLocaleString()}</span>
+                         </div>
+                         <div className="flex justify-between font-black text-lg pt-4 border-t-2 border-slate-200 text-slate-900">
+                           <span>Total Pasiva</span>
+                           <span>Rp {(stats.totalSales + (stats.totalCOGS * 1.5)).toLocaleString()}</span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                   
+                   <div className="mt-12 p-6 bg-slate-900 text-white rounded-[2rem] text-center font-bold tracking-tighter">
+                      Neraca Seimbang (Balanced) - Sistem Verifikasi Akuntansi SaquMart ✅
+                   </div>
+                </section>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

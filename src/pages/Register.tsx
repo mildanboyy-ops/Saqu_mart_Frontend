@@ -14,17 +14,23 @@ import { motion } from "framer-motion"
 import { ChevronLeft, Store } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import GlobalLoading from "@/components/GlobalLoading"
 
 export default function Register() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Registrasi berhasil! Silakan login.");
-    navigate("/login");
+    setIsRegistering(true);
+    
+    setTimeout(() => {
+      toast.success("Registrasi berhasil! Silakan login.");
+      navigate("/login");
+    }, 1500);
   }
 
   return (
@@ -33,18 +39,34 @@ export default function Register() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="min-h-screen flex flex-col items-center justify-center bg-[#0a2e1f] p-4 relative overflow-hidden"
+      className="min-h-screen flex flex-col items-center justify-center bg-[#051c12] p-4 relative overflow-hidden"
     >
+      <GlobalLoading loading={isRegistering} />
+      {/* Dynamic Background Orbs */}
       <div className="absolute top-0 left-0 w-full h-full -z-10 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -mr-64 -mt-64" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -ml-64 -mb-64" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]" />
+        <motion.div 
+          animate={{ 
+            x: [0, 100, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-emerald-500/20 rounded-full blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, -80, 0],
+            y: [0, 100, 0],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" 
+        />
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.05] mix-blend-overlay" />
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        <Link to="/" className="inline-flex items-center text-sm text-white/60 hover:text-white transition-all mb-8 group bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md">
-          <ChevronLeft className="h-4 w-4 mr-1 group-hover:-translate-x-1 transition-transform" />
-          Kembali ke Beranda
+        <Link to="/" className="inline-flex items-center text-sm text-white/50 hover:text-white transition-all mb-10 group bg-white/5 px-5 py-2.5 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl">
+          <ChevronLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1.5 transition-transform" />
+          <span className="font-semibold tracking-wide">Kembali ke Beranda</span>
         </Link>
 
         <div className="text-center mb-8">
@@ -54,17 +76,17 @@ export default function Register() {
           </div>
           <p className="text-white/40 uppercase tracking-[0.2em] text-[10px] font-bold">Pendaftaran Akun Baru</p>
         </div>
-        <Card className="shadow-lg border-primary/20">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Daftar</CardTitle>
-            <CardDescription className="text-center">
-              Lengkapi data di bawah ini untuk membuat akun
+        <Card className="premium-card !border-none !shadow-2xl">
+          <CardHeader className="space-y-2 pb-8">
+            <CardTitle className="text-3xl font-black text-center tracking-tight text-slate-900">Buat Akun</CardTitle>
+            <CardDescription className="text-center font-medium text-slate-500">
+              Lengkapi data kamu buat bikin akun baru.
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleRegister}>
-            <CardContent className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nama Lengkap</Label>
+            <CardContent className="grid gap-6">
+              <div className="grid gap-2.5">
+                <Label htmlFor="name" className="text-slate-700 font-bold ml-1">Nama Lengkap</Label>
                 <Input 
                   id="name" 
                   type="text" 
@@ -72,10 +94,11 @@ export default function Register() {
                   required 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="h-12 px-4 shadow-sm"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+              <div className="grid gap-2.5">
+                <Label htmlFor="email" className="text-slate-700 font-bold ml-1">Email</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -83,10 +106,11 @@ export default function Register() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="h-12 px-4 shadow-sm"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
+              <div className="grid gap-2.5">
+                <Label htmlFor="password" className="text-slate-700 font-bold ml-1">Password</Label>
                 <Input 
                   id="password" 
                   type="password" 
@@ -94,15 +118,18 @@ export default function Register() {
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 px-4 shadow-sm"
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-              <Button className="w-full" type="submit">Daftar</Button>
-              <div className="text-sm text-center text-muted-foreground">
+            <CardFooter className="flex flex-col gap-6 pt-6">
+              <Button className="w-full premium-button h-14 text-lg font-black" type="submit">
+                Daftar Sekarang
+              </Button>
+              <div className="text-sm text-center font-medium text-slate-500">
                 Sudah punya akun?{" "}
-                <Link to="/login" className="text-primary hover:underline">
-                  Login
+                <Link to="/login" className="text-primary font-bold hover:underline underline-offset-4">
+                  Login di sini
                 </Link>
               </div>
             </CardFooter>

@@ -206,50 +206,112 @@ export default function POS() {
 
   const printReceipt = () => {
     if (!lastTransaction) return;
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    const printWindow = window.open('', '_blank', 'width=450,height=700');
     if (!printWindow) return;
 
     const itemsHtml = lastTransaction.items.map((item: any) => `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-        <span>${item.name} x${item.qty}</span>
-        <span>Rp ${(item.price * item.qty).toLocaleString()}</span>
-      </div>
+      <tr>
+        <td style="padding: 4px 0;">
+          <div style="font-weight: bold;">${item.name}</div>
+          <div style="font-size: 10px;">${item.qty} x Rp ${item.price.toLocaleString()}</div>
+        </td>
+        <td style="text-align: right; vertical-align: top; padding: 4px 0;">
+          Rp ${(item.price * item.qty).toLocaleString()}
+        </td>
+      </tr>
     `).join('');
 
     printWindow.document.write(`
       <html>
         <head>
-          <title>Struk SaquMart</title>
+          <title>Struk SaquMart - ${lastTransaction.id}</title>
           <style>
-            body { font-family: 'Courier New', Courier, monospace; width: 300px; margin: 0 auto; padding: 20px; font-size: 14px; }
-            .header { text-align: center; margin-bottom: 20px; }
-            .divider { border-top: 1px dashed #000; margin: 10px 0; }
-            .footer { text-align: center; margin-top: 20px; font-size: 12px; }
-            .total-row { font-weight: bold; display: flex; justify-content: space-between; }
+            @page { margin: 0; }
+            body { 
+              font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              width: 320px; 
+              margin: 0 auto; 
+              padding: 30px; 
+              color: #000;
+              line-height: 1.4;
+            }
+            .header { text-align: center; margin-bottom: 25px; }
+            .store-name { font-size: 22px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.5px; }
+            .store-info { font-size: 11px; color: #444; margin-top: 4px; }
+            
+            .divider { border-top: 1.5px dashed #000; margin: 15px 0; }
+            
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th { text-align: left; border-bottom: 1px solid #000; padding-bottom: 5px; }
+            
+            .totals { margin-top: 15px; font-size: 13px; }
+            .total-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+            .grand-total { font-size: 18px; font-weight: 900; border-top: 1px solid #000; padding-top: 8px; margin-top: 8px; }
+            
+            .footer { text-align: center; margin-top: 30px; font-size: 11px; }
+            .transaction-id { font-family: monospace; font-size: 10px; color: #666; margin-top: 10px; }
           </style>
         </head>
         <body>
           <div class="header">
-            <h2 style="margin: 0;">${settings.storeName}</h2>
-            <div style="font-size: 10px;">${settings.storeAddress}</div>
-            <div style="font-size: 10px;">Telp: ${settings.storePhone}</div>
+            <h1 class="store-name">${settings.storeName}</h1>
+            <div class="store-info">
+              ${settings.storeAddress}<br>
+              Telp: ${settings.storePhone}
+            </div>
           </div>
+
           <div class="divider"></div>
-          <div>${itemsHtml}</div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Produk</th>
+                <th style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+
           <div class="divider"></div>
-          <div class="total-row"><span>Total:</span> <span>Rp ${lastTransaction.total.toLocaleString()}</span></div>
-          <div style="display: flex; justify-content: space-between; font-size: 12px;">
-            <span>Bayar:</span> <span>Rp ${lastTransaction.payment.toLocaleString()}</span>
+
+          <div class="totals">
+            <div class="total-row">
+              <span>Subtotal</span>
+              <span>Rp ${lastTransaction.total.toLocaleString()}</span>
+            </div>
+            <div class="total-row">
+              <span>Metode Bayar</span>
+              <span>${lastTransaction.method}</span>
+            </div>
+            <div class="total-row">
+              <span>Tunai</span>
+              <span>Rp ${lastTransaction.payment.toLocaleString()}</span>
+            </div>
+            <div class="total-row">
+              <span>Kembali</span>
+              <span>Rp ${lastTransaction.change.toLocaleString()}</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>TOTAL</span>
+              <span>Rp ${lastTransaction.total.toLocaleString()}</span>
+            </div>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 12px;">
-            <span>Kembali:</span> <span>Rp ${lastTransaction.change.toLocaleString()}</span>
-          </div>
-          <div class="divider"></div>
+
           <div class="footer">
-            ${settings.receiptFooter}<br>
-            ${new Date(lastTransaction.timestamp).toLocaleString('id-ID')}
+            <div style="font-weight: bold; margin-bottom: 4px;">${settings.receiptFooter}</div>
+            <div>${new Date(lastTransaction.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+            <div class="transaction-id">${lastTransaction.id}</div>
           </div>
-          <script>window.print(); window.close();<\/script>
+
+          <script>
+            window.onload = () => {
+              window.print();
+              setTimeout(() => window.close(), 500);
+            };
+          <\/script>
         </body>
       </html>
     `);

@@ -39,17 +39,37 @@ const BANKS = [
   { id: 'Jago', name: 'Bank Jago' },
 ];
 
-const sidebarItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['Owner', 'Admin', 'Kasir'] },
-  { icon: ShoppingCart, label: 'Kasir POS', path: '/pos', roles: ['Owner', 'Admin', 'Kasir'] },
-  { icon: Package, label: 'Produk', path: '/products', roles: ['Owner', 'Admin'] },
-  { icon: ArrowDownToLine, label: 'Stok Masuk', path: '/stock-in', roles: ['Owner', 'Admin'] },
-  { icon: ArrowUpFromLine, label: 'Stok Keluar', path: '/stock-out', roles: ['Owner', 'Admin'] },
-  { icon: BarChart3, label: 'Laporan', path: '/reports', roles: ['Owner', 'Admin'] },
-  { icon: Users2, label: 'Member', path: '/members', roles: ['Owner', 'Admin', 'Kasir'] },
-  { icon: Truck, label: 'Supplier', path: '/suppliers', roles: ['Owner', 'Admin'] },
-  { icon: Users, label: 'Karyawan', path: '/users', roles: ['Owner'] },
-  { icon: Settings, label: 'Pengaturan', path: '/settings', roles: ['Owner'] },
+const sidebarGroups = [
+  {
+    title: 'Utama',
+    items: [
+      { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['Owner', 'Admin', 'Kasir'] },
+      { icon: ShoppingCart, label: 'Kasir POS', path: '/pos', roles: ['Owner', 'Admin', 'Kasir'], badge: 'New' },
+    ]
+  },
+  {
+    title: 'Manajemen Stok',
+    items: [
+      { icon: Package, label: 'Produk', path: '/products', roles: ['Owner', 'Admin'] },
+      { icon: ArrowDownToLine, label: 'Stok Masuk', path: '/stock-in', roles: ['Owner', 'Admin'] },
+      { icon: ArrowUpFromLine, label: 'Stok Keluar', path: '/stock-out', roles: ['Owner', 'Admin'] },
+      { icon: Truck, label: 'Supplier', path: '/suppliers', roles: ['Owner', 'Admin'] },
+    ]
+  },
+  {
+    title: 'Analisis & Pelanggan',
+    items: [
+      { icon: BarChart3, label: 'Laporan', path: '/reports', roles: ['Owner', 'Admin'] },
+      { icon: Users2, label: 'Member', path: '/members', roles: ['Owner', 'Admin', 'Kasir'] },
+    ]
+  },
+  {
+    title: 'Sistem',
+    items: [
+      { icon: Users, label: 'Karyawan', path: '/users', roles: ['Owner'] },
+      { icon: Settings, label: 'Pengaturan', path: '/settings', roles: ['Owner'] },
+    ]
+  }
 ];
 
 function RealTimeClock() {
@@ -133,8 +153,6 @@ export default function DashboardLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  const filteredItems = sidebarItems.filter(item => item.roles.includes(user?.role || ''));
-
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <aside
@@ -143,35 +161,43 @@ export default function DashboardLayout() {
           collapsed ? "w-20" : "w-72"
         )}
       >
-        <Link to="/profile" className={cn("p-6 flex items-center gap-3 border-b hover:bg-muted/50 transition-colors cursor-pointer", collapsed && "justify-center px-2")}>
-          <Avatar className="w-10 h-10 border border-primary/20">
-            <AvatarImage src={user?.avatar} />
-            <AvatarFallback className="bg-primary/10 text-primary font-bold">
-              {user?.name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+        <Link to="/profile" className={cn("p-6 flex items-center gap-4 border-b hover:bg-muted/50 transition-all group cursor-pointer", collapsed && "justify-center px-2")}>
+          <div className="relative">
+            <Avatar className="w-12 h-12 border-2 border-primary/20 shadow-xl group-hover:scale-105 transition-transform">
+              <AvatarImage src={user?.avatar} />
+              <AvatarFallback className="bg-primary/10 text-primary font-black">
+                {user?.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-card rounded-full" />
+          </div>
           {!collapsed && (
-            <div className="overflow-hidden">
-              <p className="font-bold truncate">{user?.name || "Admin SaquMart"}</p>
-              <p className="text-xs text-muted-foreground truncate uppercase tracking-widest font-semibold">{user?.role}</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-sm tracking-tight truncate group-hover:text-primary transition-colors">{user?.name || "Admin SaquMart"}</p>
+              <p className="text-[10px] text-muted-foreground truncate uppercase tracking-[0.2em] font-black">{user?.role}</p>
             </div>
           )}
         </Link>
 
         {!collapsed && (user?.role === 'Owner' || user?.role === 'Admin') && (
-          <div className="px-4 py-6">
-            <div className="bg-primary/5 rounded-2xl p-4 border border-primary/10 relative overflow-hidden group">
-              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                <Wallet className="h-3 w-3" />
-                <span>Saldo Pendapatan</span>
-              </div>
-              <p className="text-xl font-bold text-primary">Rp {totalRevenue.toLocaleString()}</p>
-              <div className="mt-4 flex flex-col gap-2">
-                <div className="flex items-center text-[10px] text-green-600 bg-green-500/10 w-fit px-2 py-0.5 rounded-full font-medium">
-                  Active Session
+          <div className="px-4 py-8">
+            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-[2rem] p-5 border border-primary/10 relative overflow-hidden group shadow-sm hover:shadow-md transition-all">
+              <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-primary/20 p-2 rounded-xl">
+                    <Wallet className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-primary/60">
+                    Income Balance
+                  </div>
                 </div>
-                <Button size="sm" onClick={() => setIsWithdrawOpen(true)} className="h-8 text-xs font-bold w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20">
+                <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">Rp {totalRevenue.toLocaleString()}</p>
+                <Button 
+                  size="sm" 
+                  onClick={() => setIsWithdrawOpen(true)} 
+                  className="w-full premium-button h-10 text-[11px] font-black"
+                >
                   Tarik Saldo
                 </Button>
               </div>
@@ -179,34 +205,83 @@ export default function DashboardLayout() {
           </div>
         )}
 
-        <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-          {filteredItems.map((item) => {
-            const active = location.pathname === item.path;
+        <nav className="flex-1 space-y-6 p-4 overflow-y-auto">
+          {sidebarGroups.map((group, gIdx) => {
+            const filteredItems = group.items.filter(item => item.roles.includes(user?.role || ''));
+            if (filteredItems.length === 0) return null;
+            
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative",
-                  active 
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  collapsed && "justify-center px-2"
+              <div key={gIdx} className="space-y-2">
+                {!collapsed && (
+                  <p className="px-3 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-3">
+                    {group.title}
+                  </p>
                 )}
-              >
-                <item.icon className={cn("h-5 w-5 shrink-0 transition-transform group-hover:scale-110", active && "scale-110")} />
-                {!collapsed && <span className="font-medium">{item.label}</span>}
-                {!collapsed && active && <ChevronRight className="h-4 w-4 ml-auto opacity-50" />}
-                
-                {collapsed && (
-                   <div className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border shadow-md whitespace-nowrap z-50">
-                    {item.label}
-                   </div>
-                )}
-              </Link>
+                <div className="space-y-1">
+                  {filteredItems.map((item) => {
+                    const active = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-300 group relative",
+                          active 
+                            ? "bg-primary text-primary-foreground shadow-xl shadow-primary/25 scale-[1.02]" 
+                            : "text-muted-foreground hover:bg-primary/5 hover:text-primary hover:translate-x-1",
+                          collapsed && "justify-center px-2 hover:translate-x-0"
+                        )}
+                      >
+                        <item.icon className={cn("h-5 w-5 shrink-0 transition-all duration-300", active ? "scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" : "group-hover:scale-110")} />
+                        {!collapsed && <span className="font-bold text-sm tracking-tight">{item.label}</span>}
+                        
+                        {!collapsed && item.badge && (
+                          <span className="ml-auto bg-primary/20 text-primary text-[10px] font-black px-2 py-0.5 rounded-full border border-primary/20 animate-pulse">
+                            {item.badge}
+                          </span>
+                        )}
+
+                        {!collapsed && active && !item.badge && <ChevronRight className="h-4 w-4 ml-auto opacity-50" />}
+                        
+                        {collapsed && (
+                           <div className="absolute left-full ml-3 px-3 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all translate-x-2 group-hover:translate-x-0 shadow-2xl whitespace-nowrap z-50">
+                            {item.label}
+                           </div>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </nav>
+
+        {/* System Status Indicator */}
+        {!collapsed && (
+          <div className="px-4 py-4 space-y-3">
+            <div className="bg-muted/50 rounded-2xl p-3 border border-border flex items-center gap-3">
+              <div className="relative">
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full" />
+                <div className="absolute inset-0 w-2.5 h-2.5 bg-green-500 rounded-full animate-ping opacity-75" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1.5">System Status</p>
+                <p className="text-[11px] font-bold text-foreground truncate">Server Terhubung</p>
+              </div>
+            </div>
+
+            <div className="bg-primary/5 rounded-2xl p-3 border border-primary/10 flex items-center gap-3 group/backup cursor-pointer hover:bg-primary/10 transition-colors">
+              <div className="w-8 h-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 group-hover/backup:rotate-12 transition-transform">
+                <ArrowDownToLine className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 leading-none mb-1.5">Cloud Backup</p>
+                <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200">Terakhir: 2 Menit Lalu</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="p-4 border-t space-y-2">
           <Button
