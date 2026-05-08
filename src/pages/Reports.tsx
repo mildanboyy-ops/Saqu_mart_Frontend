@@ -101,32 +101,32 @@ export default function Reports() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-12">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Reports & Analytics</h1>
-          <p className="text-muted-foreground font-medium">Pantau kesehatan finansial toko Anda secara real-time.</p>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Reports & Analytics</h1>
+          <p className="text-sm md:text-base text-muted-foreground font-medium">Pantau kesehatan finansial toko Anda secara real-time.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="rounded-xl border-2 font-bold" onClick={handleExportPDF}>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Button variant="outline" className="flex-1 md:flex-none rounded-xl border-2 font-bold h-10 md:h-11" onClick={handleExportPDF}>
             <Printer className="mr-2 h-4 w-4 text-primary" /> Cetak Laporan
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-[400px] bg-muted/50 p-1 rounded-2xl h-14 mb-6">
-          <TabsTrigger value="overview" className="rounded-xl font-bold text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">Overview</TabsTrigger>
-          <TabsTrigger value="accounting" className="rounded-xl font-bold text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">Laba Rugi</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 max-w-[400px] bg-muted/50 p-1 rounded-2xl h-12 md:h-14 mb-6">
+          <TabsTrigger value="overview" className="rounded-xl font-bold text-xs md:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">Overview</TabsTrigger>
+          <TabsTrigger value="accounting" className="rounded-xl font-bold text-xs md:text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">Laba Rugi</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 outline-none">
-          <div className="flex items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border-2 border-slate-100 shadow-sm">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border-2 border-slate-100 shadow-sm">
+            <div className="flex items-center gap-2 shrink-0">
               <Filter className="h-4 w-4 text-primary" />
               <span className="text-sm font-bold text-slate-700">Filter Periode:</span>
             </div>
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-[180px] rounded-xl border-2 h-10 font-bold"><SelectValue placeholder="Pilih Periode" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[180px] rounded-xl border-2 h-10 font-bold"><SelectValue placeholder="Pilih Periode" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="daily">Harian</SelectItem>
                 <SelectItem value="weekly">Mingguan</SelectItem>
@@ -136,64 +136,64 @@ export default function Reports() {
             </Select>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             <Card className="premium-card">
-              <CardHeader className="pb-2 text-center border-b border-slate-50">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
-                  <DollarSign className="h-3 w-3 text-primary" /> Total Penjualan
+              <CardHeader className="pb-1 md:pb-2 text-center border-b border-slate-50 px-3">
+                <CardTitle className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-1 md:gap-2">
+                  <DollarSign className="h-2.5 w-2.5 md:h-3 md:w-3 text-primary" /> Total Penjualan
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 text-center">
-                <div className="text-2xl font-black tracking-tighter">Rp {stats.totalSales.toLocaleString()}</div>
-                <div className="mt-2 inline-flex items-center text-[10px] text-green-600 bg-green-500/10 px-2 py-0.5 rounded-full font-bold">
-                  <ArrowUpRight className="h-3 w-3 mr-1" /> +12% vs Prev
+              <CardContent className="pt-4 md:pt-6 text-center px-3">
+                <div className="text-lg md:text-2xl font-black tracking-tighter">Rp {stats.totalSales.toLocaleString()}</div>
+                <div className="mt-2 inline-flex items-center text-[8px] md:text-[10px] text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-full font-bold">
+                  <ArrowUpRight className="h-2 w-2 md:h-3 md:w-3 mr-1" /> +12%
                 </div>
               </CardContent>
             </Card>
             <Card className="premium-card">
-              <CardHeader className="pb-2 text-center border-b border-slate-50">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
-                  <TrendingUp className="h-3 w-3 text-emerald-500" /> Total Profit
+              <CardHeader className="pb-1 md:pb-2 text-center border-b border-slate-50 px-3">
+                <CardTitle className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-1 md:gap-2">
+                  <TrendingUp className="h-2.5 w-2.5 md:h-3 md:w-3 text-emerald-500" /> Total Profit
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 text-center">
-                <div className="text-2xl font-black text-emerald-600 tracking-tighter">Rp {stats.totalProfit.toLocaleString()}</div>
-                <div className="mt-2 inline-flex items-center text-[10px] text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
+              <CardContent className="pt-4 md:pt-6 text-center px-3">
+                <div className="text-lg md:text-2xl font-black text-emerald-600 tracking-tighter">Rp {stats.totalProfit.toLocaleString()}</div>
+                <div className="mt-2 inline-flex items-center text-[8px] md:text-[10px] text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full font-bold">
                   Margin {( (stats.totalProfit / stats.totalSales) * 100).toFixed(1)}%
                 </div>
               </CardContent>
             </Card>
             <Card className="premium-card">
-              <CardHeader className="pb-2 text-center border-b border-slate-50">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
-                  <ShoppingCart className="h-3 w-3 text-amber-500" /> Transaksi
+              <CardHeader className="pb-1 md:pb-2 text-center border-b border-slate-50 px-3">
+                <CardTitle className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-1 md:gap-2">
+                  <ShoppingCart className="h-2.5 w-2.5 md:h-3 md:w-3 text-amber-500" /> Transaksi
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 text-center">
-                <div className="text-2xl font-black tracking-tighter">{stats.count}</div>
-                <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-widest">Selesai</p>
+              <CardContent className="pt-4 md:pt-6 text-center px-3">
+                <div className="text-lg md:text-2xl font-black tracking-tighter">{stats.count}</div>
+                <p className="text-[8px] md:text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-widest">Selesai</p>
               </CardContent>
             </Card>
             <Card className="premium-card">
-              <CardHeader className="pb-2 text-center border-b border-slate-50">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-2">
+              <CardHeader className="pb-1 md:pb-2 text-center border-b border-slate-50 px-3">
+                <CardTitle className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center justify-center gap-1 md:gap-2">
                    Payment Split
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 text-center">
-                <div className="text-2xl font-black tracking-tighter">{Math.round((stats.cashCount / stats.count) * 100)}% <span className="text-xs text-muted-foreground font-medium">Cash</span></div>
-                <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-widest">Metode Bayar</p>
+              <CardContent className="pt-4 md:pt-6 text-center px-3">
+                <div className="text-lg md:text-2xl font-black tracking-tighter">{Math.round((stats.cashCount / stats.count) * 100)}%</div>
+                <p className="text-[8px] md:text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-widest">Cash Method</p>
               </CardContent>
             </Card>
           </div>
 
           <Card className="premium-card border-none shadow-2xl">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl font-black tracking-tight">Tren Performa Penjualan</CardTitle>
-              <Badge variant="outline" className="rounded-full font-bold">30 Hari Terakhir</Badge>
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <CardTitle className="text-lg md:text-xl font-black tracking-tight">Tren Performa Penjualan</CardTitle>
+              <Badge variant="outline" className="rounded-full font-bold text-[10px] md:text-xs">30 Hari Terakhir</Badge>
             </CardHeader>
             <CardContent>
-              <div className="h-[350px] w-full mt-4">
+              <div className="h-[250px] md:h-[350px] w-full mt-2 md:mt-4">
                 {chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
@@ -211,7 +211,7 @@ export default function Reports() {
                       <XAxis dataKey="date" fontSize={10} fontWeight="bold" tickLine={false} axisLine={false} />
                       <YAxis hide />
                       <Tooltip
-                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', fontWeight: 'bold', fontSize: '12px' }}
                         formatter={(value: any) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(value)}
                       />
                       <Area type="monotone" dataKey="sales" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" name="Penjualan" />
@@ -219,7 +219,7 @@ export default function Reports() {
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-muted-foreground italic font-medium">Belum ada data transaksi untuk ditampilkan.</div>
+                  <div className="h-full flex items-center justify-center text-muted-foreground italic font-medium text-sm">Belum ada data transaksi untuk ditampilkan.</div>
                 )}
               </div>
             </CardContent>
@@ -228,30 +228,30 @@ export default function Reports() {
 
         <TabsContent value="accounting" className="space-y-6 outline-none">
           <Card className="premium-card overflow-hidden">
-            <CardHeader className="bg-slate-900 text-white p-8">
+            <CardHeader className="bg-slate-900 text-white p-6 md:p-8">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-3xl font-black tracking-tighter">Neraca Laba Rugi</h2>
-                  <p className="text-slate-400 text-sm font-medium mt-1 uppercase tracking-widest">Accounting Standard Report</p>
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter">Neraca Laba Rugi</h2>
+                  <p className="text-slate-400 text-[10px] md:text-sm font-medium mt-1 uppercase tracking-widest">Accounting Standard Report</p>
                 </div>
-                <Calculator className="h-12 w-12 text-primary opacity-50" />
+                <Calculator className="h-8 w-8 md:h-12 md:w-12 text-primary opacity-50" />
               </div>
             </CardHeader>
-            <CardContent className="p-8">
-              <div className="space-y-12">
+            <CardContent className="p-4 md:p-8">
+              <div className="space-y-8 md:space-y-12">
                 {/* Revenue Section */}
                 <section>
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 border-b-2 border-primary/10 pb-2">Pendapatan</h3>
+                  <h3 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-primary mb-4 border-b-2 border-primary/10 pb-2">Pendapatan</h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm font-bold">
+                    <div className="flex justify-between items-center text-xs md:text-sm font-bold">
                       <span>Total Penjualan Kotor</span>
                       <span>Rp {stats.totalSales.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between items-center text-sm font-bold text-slate-500">
+                    <div className="flex justify-between items-center text-xs md:text-sm font-bold text-slate-500">
                       <span>Retur & Potongan</span>
                       <span className="text-destructive">(Rp 0)</span>
                     </div>
-                    <div className="flex justify-between items-center text-lg font-black pt-4 border-t border-slate-100">
+                    <div className="flex justify-between items-center text-base md:text-lg font-black pt-4 border-t border-slate-100">
                       <span>Penjualan Bersih</span>
                       <span>Rp {stats.totalSales.toLocaleString()}</span>
                     </div>
@@ -260,13 +260,13 @@ export default function Reports() {
 
                 {/* COGS Section */}
                 <section>
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 mb-4 border-b-2 border-slate-100 pb-2">Harga Pokok Penjualan (HPP)</h3>
+                  <h3 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-slate-500 mb-4 border-b-2 border-slate-100 pb-2">Harga Pokok Penjualan (HPP)</h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm font-bold">
+                    <div className="flex justify-between items-center text-xs md:text-sm font-bold">
                       <span>Pembelian Stok (COGS)</span>
                       <span>Rp {stats.totalCOGS.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between items-center text-lg font-black pt-4 border-t border-slate-100 text-slate-700">
+                    <div className="flex justify-between items-center text-base md:text-lg font-black pt-4 border-t border-slate-100 text-slate-700">
                       <span>Laba Kotor (Gross Profit)</span>
                       <span className="text-emerald-600">Rp {stats.totalProfit.toLocaleString()}</span>
                     </div>
@@ -275,15 +275,15 @@ export default function Reports() {
 
                 {/* Expenses Section */}
                 <section>
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-destructive mb-4 border-b-2 border-destructive/10 pb-2">Beban Operasional</h3>
+                  <h3 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-destructive mb-4 border-b-2 border-destructive/10 pb-2">Beban Operasional</h3>
                   <div className="space-y-4">
                     {stats.expenses.map((e, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-sm font-medium text-slate-600 italic">
+                      <div key={idx} className="flex justify-between items-center text-xs md:text-sm font-medium text-slate-600 italic">
                         <span>{e.name}</span>
                         <span>Rp {e.amount.toLocaleString()}</span>
                       </div>
                     ))}
-                    <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-2">
+                    <div className="flex justify-between items-center text-xs md:text-sm font-black text-slate-900 pt-2">
                       <span>Total Beban Operasional</span>
                       <span className="text-destructive">Rp {stats.totalExpenses.toLocaleString()}</span>
                     </div>
@@ -291,31 +291,31 @@ export default function Reports() {
                 </section>
 
                 {/* Net Profit Section */}
-                <section className="bg-primary/5 p-10 rounded-[2.5rem] border-4 border-white shadow-2xl relative overflow-hidden mb-12">
-                  <div className="absolute top-0 right-0 p-6">
-                    <TrendingUp className="h-24 w-24 text-primary opacity-5" />
+                <section className="bg-primary/5 p-6 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] border-2 md:border-4 border-white shadow-2xl relative overflow-hidden mb-6 md:mb-12">
+                  <div className="absolute top-0 right-0 p-4 md:p-6 opacity-5 md:opacity-10">
+                    <TrendingUp className="h-16 w-16 md:h-24 md:w-24 text-primary" />
                   </div>
                   <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                      <div className="text-center md:text-left">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-3">Profitability Analysis</p>
-                        <h2 className="text-4xl font-black tracking-tighter text-slate-900 leading-none">Laba Bersih (Net Profit)</h2>
+                    <div className="flex flex-col xl:flex-row justify-between items-center gap-6">
+                      <div className="text-center xl:text-left">
+                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-2 md:mb-3">Profitability Analysis</p>
+                        <h2 className="text-2xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">Laba Bersih</h2>
                       </div>
-                      <div className="text-center md:text-right">
+                      <div className="text-center xl:text-right w-full xl:w-auto">
                         <div className={cn(
-                          "text-6xl font-black tracking-tighter mb-2",
+                          "text-4xl md:text-6xl font-black tracking-tighter mb-1 md:mb-2",
                           (stats.totalProfit - stats.totalExpenses) >= 0 ? "text-emerald-600" : "text-destructive"
                         )}>
                           Rp {(stats.totalProfit - stats.totalExpenses).toLocaleString()}
                         </div>
-                        <div className="h-1.5 w-full bg-emerald-600/20 rounded-full mb-3" /> {/* Accounting double underline effect */}
-                        <div className="h-0.5 w-full bg-emerald-600/40 rounded-full mb-4" />
+                        <div className="h-1 md:h-1.5 w-full bg-emerald-600/20 rounded-full mb-2 md:mb-3" />
+                        <div className="h-0.5 w-full bg-emerald-600/40 rounded-full mb-3 md:mb-4" />
                         
-                        <div className="inline-flex items-center gap-3 px-4 py-2 bg-white rounded-2xl shadow-sm border border-slate-100">
-                          <Badge className="bg-emerald-500 hover:bg-emerald-600 font-black">
+                        <div className="inline-flex items-center gap-2 md:gap-3 px-3 py-1.5 md:px-4 md:py-2 bg-white rounded-xl md:rounded-2xl shadow-sm border border-slate-100">
+                          <Badge className="bg-emerald-500 hover:bg-emerald-600 font-black text-[9px] md:text-[11px]">
                             {(((stats.totalProfit - stats.totalExpenses) / stats.totalSales) * 100).toFixed(1)}%
                           </Badge>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Net Margin</span>
+                          <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500">Net Margin</span>
                         </div>
                       </div>
                     </div>

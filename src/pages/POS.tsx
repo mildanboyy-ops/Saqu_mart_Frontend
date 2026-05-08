@@ -319,38 +319,38 @@ export default function POS() {
   };
 
   return (
-    <div className="flex h-full bg-muted/30">
-      <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
-        <div className="flex items-center gap-4 bg-card p-4 rounded-xl border shadow-sm">
+    <div className="flex flex-col lg:flex-row h-full bg-muted/30 overflow-hidden">
+      <div className="flex-1 flex flex-col p-2 md:p-4 gap-3 md:gap-4 overflow-hidden">
+        <div className="flex items-center gap-3 md:gap-4 bg-card p-3 md:p-4 rounded-xl border shadow-sm">
           <Link to="/dashboard">
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="h-9 w-9">
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-primary tracking-tight">Kasir POS</h1>
-            <p className="text-xs text-muted-foreground hidden md:block">F1: Cari • F4: Bayar • Esc: Batal</p>
+            <h1 className="text-lg md:text-xl font-bold text-primary tracking-tight leading-none">Kasir POS</h1>
+            <p className="text-[10px] text-muted-foreground hidden md:block mt-1">F1: Cari • F4: Bayar • Esc: Batal</p>
           </div>
         </div>
 
         <Card className="border-primary/20 shadow-sm border-2">
-          <CardContent className="p-4">
+          <CardContent className="p-3 md:p-4">
             <form onSubmit={handleManualBarcode} className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
               <Input 
                 ref={inputRef}
-                className="h-16 pl-12 pr-32 text-xl font-medium shadow-lg border-primary/20"
+                className="h-14 md:h-16 pl-10 md:pl-12 pr-28 md:pr-32 text-lg md:text-xl font-medium shadow-lg border-primary/20"
                 placeholder="Scan barcode..."
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
                 autoFocus
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                <Button type="button" variant="ghost" size="icon" className="h-12 w-12 text-amber-500" onClick={() => setIsTempProductOpen(true)}>
-                  <PackagePlus className="h-6 w-6" />
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex gap-1">
+                <Button type="button" variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 text-amber-500" onClick={() => setIsTempProductOpen(true)}>
+                  <PackagePlus className="h-5 w-5 md:h-6 md:w-6" />
                 </Button>
-                <Button type="button" variant="ghost" size="icon" className={cn("h-12 w-12", isScannerOpen && "bg-primary/10 text-primary")} onClick={() => setIsScannerOpen(!isScannerOpen)}>
-                  <Camera className="h-6 w-6" />
+                <Button type="button" variant="ghost" size="icon" className={cn("h-10 w-10 md:h-12 md:w-12", isScannerOpen && "bg-primary/10 text-primary")} onClick={() => setIsScannerOpen(!isScannerOpen)}>
+                  <Camera className="h-5 w-5 md:h-6 md:w-6" />
                 </Button>
               </div>
             </form>
@@ -358,15 +358,15 @@ export default function POS() {
         </Card>
 
         <Card className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-auto">
             <Table>
               <TableHeader className="bg-muted/50 sticky top-0 z-10">
                 <TableRow>
-                  <TableHead>Produk</TableHead>
-                  <TableHead className="text-center w-32">Qty</TableHead>
-                  <TableHead className="text-right">Harga</TableHead>
-                  <TableHead className="text-right">Subtotal</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="px-2 md:px-4">Produk</TableHead>
+                  <TableHead className="text-center w-24 md:w-32 px-1 md:px-4">Qty</TableHead>
+                  <TableHead className="text-right hidden sm:table-cell px-2 md:px-4">Harga</TableHead>
+                  <TableHead className="text-right px-2 md:px-4">Subtotal</TableHead>
+                  <TableHead className="w-[40px] md:w-[50px] px-1 md:px-4"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -375,20 +375,20 @@ export default function POS() {
                 )}
                 {cart.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="font-semibold">{item.name}</div>
-                      <div className="text-xs text-muted-foreground">{item.barcode}</div>
+                    <TableCell className="px-2 md:px-4">
+                      <div className="font-bold text-sm md:text-base leading-tight">{item.name}</div>
+                      <div className="text-[10px] md:text-xs text-muted-foreground">{item.barcode}</div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-2">
-                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateQty(item.id, item.qty - 1)} disabled={item.qty <= 1}><Minus className="h-3 w-3" /></Button>
-                        <span className="w-8 text-center font-bold">{item.qty}</span>
-                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateQty(item.id, item.qty + 1)}><Plus className="h-3 w-3" /></Button>
+                    <TableCell className="px-1 md:px-4">
+                      <div className="flex items-center justify-center gap-1 md:gap-2">
+                        <Button variant="outline" size="icon" className="h-6 w-6 md:h-7 md:w-7" onClick={() => updateQty(item.id, item.qty - 1)} disabled={item.qty <= 1}><Minus className="h-3 w-3" /></Button>
+                        <span className="w-6 md:w-8 text-center font-bold text-sm md:text-base">{item.qty}</span>
+                        <Button variant="outline" size="icon" className="h-6 w-6 md:h-7 md:w-7" onClick={() => updateQty(item.id, item.qty + 1)}><Plus className="h-3 w-3" /></Button>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">Rp {item.price.toLocaleString()}</TableCell>
-                    <TableCell className="text-right font-bold text-primary">Rp {(item.price * item.qty).toLocaleString()}</TableCell>
-                    <TableCell><Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => removeFromCart(item.id)}><Trash2 className="h-4 w-4" /></Button></TableCell>
+                    <TableCell className="text-right hidden sm:table-cell px-2 md:px-4">Rp {item.price.toLocaleString()}</TableCell>
+                    <TableCell className="text-right font-black text-primary px-2 md:px-4">Rp {(item.price * item.qty).toLocaleString()}</TableCell>
+                    <TableCell className="px-1 md:px-4"><Button variant="ghost" size="icon" className="text-destructive h-7 w-7 md:h-8 md:w-8" onClick={() => removeFromCart(item.id)}><Trash2 className="h-4 w-4" /></Button></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -397,47 +397,60 @@ export default function POS() {
         </Card>
       </div>
 
-      <div className="w-[380px] border-l bg-card p-6 flex flex-col shadow-xl">
-        <h2 className="text-lg font-bold mb-4">Ringkasan</h2>
-        <div className="space-y-4 flex-1 overflow-y-auto">
-          <div className="flex justify-between text-sm text-muted-foreground"><span>Total Item</span><span>{cart.reduce((s, i) => s + i.qty, 0)} Pcs</span></div>
-          <div className="flex justify-between text-sm text-muted-foreground"><span>Pajak ({taxRate}%)</span><span>Rp {(total * taxRate / 100).toLocaleString()}</span></div>
-          
-          <div className="space-y-2">
-            <Label className="text-xs">Member (WhatsApp)</Label>
-            <div className="flex gap-1">
-              <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="h-9" placeholder="08..." />
-              <Button size="icon" variant="outline" className="h-9 w-9" onClick={handleCheckMember}><Search className="h-4 w-4" /></Button>
-            </div>
-            {selectedMember && (
-              <div className="p-3 bg-primary/5 rounded-xl border border-primary/20 text-xs">
-                <p className="font-bold">{selectedMember.name} • Rp {selectedMember.balance.toLocaleString()}</p>
-                <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                  <input type="checkbox" checked={isDepositChange} onChange={(e) => setIsDepositChange(e.target.checked)} />
-                  <span>Jadikan kembalian sebagai Deposit</span>
-                </label>
+      <div className="w-full lg:w-[380px] border-t lg:border-l bg-card p-4 md:p-6 flex flex-col shadow-[0_-8px_30px_rgba(0,0,0,0.05)] lg:shadow-xl z-10">
+        <h2 className="text-lg font-black mb-4 tracking-tight flex items-center justify-between">
+          Ringkasan Pesanan
+          <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full">{cart.reduce((s, i) => s + i.qty, 0)} Items</span>
+        </h2>
+        
+        <div className="space-y-4 flex-1 lg:overflow-y-auto">
+          <div className="grid grid-cols-2 lg:flex lg:flex-col gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Member (WhatsApp)</Label>
+              <div className="flex gap-1">
+                <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="h-9 bg-muted/30" placeholder="08..." />
+                <Button size="icon" variant="outline" className="h-9 w-9 shrink-0" onClick={handleCheckMember}><Search className="h-4 w-4" /></Button>
               </div>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="text-xs">Diskon (Rp)</Label>
-            <Input type="number" value={discount || ''} onChange={(e) => setDiscount(Number(e.target.value))} className="h-9" placeholder="0" />
+              {selectedMember && (
+                <div className="p-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 text-[11px] animate-in fade-in slide-in-from-top-2">
+                  <p className="font-bold text-emerald-600">{selectedMember.name} • Rp {selectedMember.balance.toLocaleString()}</p>
+                  <label className="flex items-center gap-2 mt-2 cursor-pointer font-medium text-slate-600">
+                    <input type="checkbox" className="rounded-sm border-slate-300" checked={isDepositChange} onChange={(e) => setIsDepositChange(e.target.checked)} />
+                    <span>Jadikan kembalian Deposit</span>
+                  </label>
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Diskon (Rp)</Label>
+              <Input type="number" value={discount || ''} onChange={(e) => setDiscount(Number(e.target.value))} className="h-9 bg-muted/30 font-bold" placeholder="0" />
+            </div>
           </div>
 
-          <div className="pt-4 border-t">
-            <p className="text-xs text-muted-foreground font-medium">TOTAL PEMBAYARAN</p>
-            <div className="text-4xl font-black text-primary tracking-tighter">
-              <span className="text-xl mr-1">Rp</span>{finalTotal.toLocaleString()}
+          <div className="pt-4 border-t space-y-2">
+             <div className="flex justify-between text-[11px] font-bold text-slate-400">
+              <span>Subtotal</span>
+              <span>Rp {total.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-[11px] font-bold text-slate-400">
+              <span>Pajak ({taxRate}%)</span>
+              <span>Rp {(total * taxRate / 100).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-end mt-4">
+              <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Total Bayar</p>
+              <div className="text-3xl md:text-4xl font-black text-primary tracking-tighter leading-none">
+                <span className="text-lg mr-1 font-bold">Rp</span>{finalTotal.toLocaleString()}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="pt-6 space-y-3">
-          <Button size="lg" className="h-16 text-xl font-bold w-full gap-2 rounded-2xl" onClick={() => setIsPaymentOpen(true)} disabled={cart.length === 0}>
+        <div className="pt-6 grid grid-cols-2 lg:flex lg:flex-col gap-3">
+          <Button size="lg" className="h-14 md:h-16 text-lg md:text-xl font-black w-full gap-2 rounded-2xl shadow-xl shadow-primary/20 order-2 lg:order-1" onClick={() => setIsPaymentOpen(true)} disabled={cart.length === 0}>
             <Banknote className="h-6 w-6" /> BAYAR (F4)
           </Button>
-          <Button variant="ghost" className="text-destructive w-full" onClick={clearCart} disabled={cart.length === 0}>Batal</Button>
+          <Button variant="ghost" className="text-destructive font-bold h-14 md:h-16 lg:h-auto order-1 lg:order-2" onClick={clearCart} disabled={cart.length === 0}>Batal</Button>
         </div>
       </div>
 
