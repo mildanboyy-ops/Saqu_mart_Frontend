@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { User, Mail, Phone, MapPin, Shield, Camera } from "lucide-react";
+import { User, Shield, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Profile() {

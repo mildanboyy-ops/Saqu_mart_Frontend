@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { ShoppingCart, Package, ShieldCheck, BarChart3, ChevronRight, Store, ChevronDown, Mail, MapPin, Phone, Globe, Smartphone, MessagesSquare } from "lucide-react"
 import { useState } from "react"
