@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Terminal, Cpu, Zap, Shield } from 'lucide-react';
+import { Cpu, Zap, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function LandingTerminal() {

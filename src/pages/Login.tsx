@@ -5,11 +5,8 @@ import { Label } from "@/components/ui/label"
 import { Link, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
-  Store, Shield, Fingerprint, ScanFace, QrCode, Globe, Zap, Cpu, Lock, 
-  AlertCircle, Sparkles, Quote, Calendar, Moon, Mail, Eye, EyeOff,
-  Activity, Cloud, Clock, CheckCircle2, Terminal as TerminalIcon,
-  ShieldCheck, Share2, History, MapPin, ChevronLeft, ArrowRight,
-  User, UserCheck, X
+  Store, Fingerprint, ScanFace, QrCode, Globe, Zap, Lock, 
+  Mail, Eye, EyeOff, ChevronLeft, ArrowRight
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAuthStore } from "@/store/useAuthStore"
@@ -21,13 +18,12 @@ import FaceScanFrame from "./login/FaceScanFrame"
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, loginBiometric, user } = useAuthStore();
+  const { login } = useAuthStore();
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("admin123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isBiometricScanning, setIsBiometricScanning] = useState(false);
-  const [scanType, setScanType] = useState<'Retina' | 'Palm' | 'Face' | 'Fingerprint' | null>(null);
   const [loginMethod, setLoginMethod] = useState<'credentials' | 'qr' | 'biometric'>('credentials');
   const [isBooting, setIsBooting] = useState(true);
   const [showSessionReturn, setShowSessionReturn] = useState(false);
@@ -73,7 +69,6 @@ export default function Login() {
   }
 
   const simulateBiometric = (type: any) => {
-    setScanType(type);
     setIsBiometricScanning(true);
     setTimeout(async () => {
       setIsBiometricScanning(false);

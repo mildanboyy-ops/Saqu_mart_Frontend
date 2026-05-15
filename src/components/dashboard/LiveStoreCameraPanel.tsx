@@ -1,5 +1,4 @@
-import { motion } from 'framer-motion';
-import { Camera, Maximize2, RefreshCw, Radio } from 'lucide-react';
+import { Maximize2, RefreshCw, Radio } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function LiveStoreCameraPanel() {

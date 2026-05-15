@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { X, Minus, Maximize2, Calculator as CalcIcon, StickyNote, Move } from 'lucide-react';
+import { X, Minus, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function FloatingMiniApp({ 

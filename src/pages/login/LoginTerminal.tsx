@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Terminal, Cpu, Zap, Shield, User, Lock, Check, Globe } from 'lucide-react';
+import { Zap, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function LoginTerminal() {

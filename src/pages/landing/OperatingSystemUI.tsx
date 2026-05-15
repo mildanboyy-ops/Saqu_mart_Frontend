@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { 
   Activity, BarChart3, Settings, 
-  X, Minus, Maximize2, Terminal as TerminalIcon, Sparkles
+  Terminal as TerminalIcon, Sparkles
 } from 'lucide-react';
-import { useState } from 'react';
+
 import LandingTerminal from './LandingTerminal';
 
 export default function OperatingSystemUI() {

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 
 import { Reorder, AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Cloud, AlertTriangle, Zap, Clock, TrendingUp, Sun, Wind, Droplets } from 'lucide-react';
 
 

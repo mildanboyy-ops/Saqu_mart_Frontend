@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { MapPin, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 
 export default function LiveSalesMap() {
   const points = [

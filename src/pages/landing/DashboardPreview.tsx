@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { TrendingUp, ShoppingCart, Users, Package } from 'lucide-react';
 
 export default function DashboardPreview() {

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { 
   BrainCircuit, ShoppingCart, Activity, Shield, 
-  Smartphone, Database, Layout, Clock, Sparkles
+  Smartphone, Database, Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

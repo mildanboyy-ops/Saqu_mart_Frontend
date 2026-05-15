@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+
 import { ShoppingCart, Mail, Globe, MapPin, Phone, Share2, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

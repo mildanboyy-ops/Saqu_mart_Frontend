@@ -6,11 +6,9 @@ import {
   Package, 
   Users, 
   BrainCircuit, 
-  Settings,
-  Search
+  Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 
 const dockItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },

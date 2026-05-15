@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Globe } from 'lucide-react';
 
-import { Server, Wifi, Database, RefreshCw, ShieldCheck, Activity, Cpu } from 'lucide-react';
+import { Wifi, ShieldCheck, Cpu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function LiveSystemStatus() {

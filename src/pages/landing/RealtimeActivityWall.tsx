@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ShoppingCart, UserPlus, Zap, Package, AlertTriangle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+
 import { cn } from '@/lib/utils';
 
 const ACTIVITIES = [

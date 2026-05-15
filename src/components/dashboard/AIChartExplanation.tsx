@@ -1,8 +1,7 @@
-import { motion } from 'framer-motion';
 import { BrainCircuit, Sparkles, MessageSquare } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export default function AIChartExplanation({ data }: { data: any }) {
+export default function AIChartExplanation({ data: _data }: { data: any }) {
   const [explanation, setExplanation] = useState("");
   const [isTyping, setIsTyping] = useState(true);
 

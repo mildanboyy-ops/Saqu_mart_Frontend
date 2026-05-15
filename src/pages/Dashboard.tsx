@@ -1,23 +1,19 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  TrendingUp, ShoppingCart, Users, Package, Activity,
-  Download, AlertCircle, AlertTriangle, Mic, MicOff, Layout, Zap, Cpu, Globe, Server,
-  Calculator, StickyNote, Camera, MessageSquare, Map as MapIcon, Sparkles
+  TrendingUp, ShoppingCart, Users, Package,
+  Download, Mic, MicOff, Layout, Calculator, StickyNote, Camera, Map as MapIcon, Sparkles, Zap, Cpu
 } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, XAxis, Tooltip, CartesianGrid } from "recharts";
 import LiveActivityFeed from "@/components/realtime/LiveActivityFeed";
 import AnimatedCounter from "@/components/shared/AnimatedCounter";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useProductStore } from "@/store/useProductStore";
 import { useMemberStore } from "@/store/useMemberStore";
-import { useRealtimeStore } from "@/store/useRealtimeStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { toast } from "sonner";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import StoreMap from "@/components/StoreMap";
 import LiveAIInsightPanel from "@/components/dashboard/LiveAIInsightPanel";
@@ -43,9 +39,7 @@ export default function Dashboard() {
 
   const { isListening, startListening } = useVoiceAssistant();
 
-  const isOwner = user?.role === 'Owner' || user?.role === 'Admin';
   const isKasir = user?.role === 'Kasir';
-  const isGudang = user?.role === 'Gudang';
 
   const [activeMiniApps, setActiveMiniApps] = useState<string[]>([]);
 
@@ -132,7 +126,11 @@ export default function Dashboard() {
                   <Badge className="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border-none">{stat.badge}</Badge>
                 </div>
                 <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">{stat.label}</p>
-                <AnimatedCounter value={stat.value} prefix={stat.prefix || ''} className="text-3xl font-black tracking-tighter" />
+                {typeof stat.value === 'number' ? (
+                  <AnimatedCounter value={stat.value} prefix={(stat as any).prefix || ''} className="text-3xl font-black tracking-tighter" />
+                ) : (
+                  <div className="text-3xl font-black tracking-tighter">{stat.value}</div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
