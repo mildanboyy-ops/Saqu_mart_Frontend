@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import api from '@/lib/axios';
 
 export interface TransactionItem {
   id: string;
@@ -16,68 +16,68 @@ export interface Transaction {
   profit: number;
   payment: number;
   change: number;
-  method: 'Cash' | 'Non-Cash';
+  method: 'Cash' | 'Transfer' | 'Debit' | 'QRIS' | 'Hutang';
+  sedekah?: number;
+  memberId?: string;
   timestamp: string;
 }
 
 interface TransactionState {
   transactions: Transaction[];
-  addTransaction: (transaction: Omit<Transaction, 'id' | 'timestamp'>) => void;
-  clearHistory: () => void;
+  lastTransaction: Transaction | null;
+  isLoading: boolean;
+  fetchTransactions: () => Promise<void>;
+  addTransaction: (transaction: Omit<Transaction, 'id' | 'timestamp'>) => Promise<void>;
+  setLastTransaction: (tx: Transaction) => void;
+  clearHistory: () => Promise<void>;
 }
 
-export const useTransactionStore = create<TransactionState>()(
-  persist(
-    (set) => ({
-      transactions: [
-        {
-          id: "TX-1715070000000",
-          items: [{ id: "1", name: "Indomie Goreng", price: 3500, costPrice: 2800, qty: 5 }],
-          total: 17500,
-          profit: 3500,
-          payment: 20000,
-          change: 2500,
-          method: "Cash",
-          timestamp: new Date(Date.now() - 86400000 * 2).toISOString()
-        },
-        {
-          id: "TX-1715080000000",
-          items: [{ id: "5", name: "Beras Maknyus 5kg", price: 68000, costPrice: 62000, qty: 1 }],
-          total: 68000,
-          profit: 6000,
-          payment: 68000,
-          change: 0,
-          method: "Non-Cash",
-          timestamp: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          id: "TX-1715090000000",
-          items: [
-            { id: "2", name: "Aqua Botol 600ml", price: 3000, costPrice: 1500, qty: 2 },
-            { id: "4", name: "Susu UHT Ultra", price: 6500, costPrice: 5200, qty: 3 }
-          ],
-          total: 25500,
-          profit: 6900,
-          payment: 30000,
-          change: 4500,
-          method: "Cash",
-          timestamp: new Date().toISOString()
-        }
-      ],
-      addTransaction: (tx) => set((state) => ({
-        transactions: [
-          { 
-            ...tx, 
-            id: `TX-${Date.now()}`, 
-            timestamp: new Date().toISOString() 
-          }, 
-          ...state.transactions
-        ]
-      })),
-      clearHistory: () => set({ transactions: [] }),
-    }),
-    {
-      name: 'saqumart-transactions',
+export const useTransactionStore = create<TransactionState>()((set, get) => ({
+  transactions: [],
+  lastTransaction: null,
+  isLoading: false,
+  setLastTransaction: (tx) => set({ lastTransaction: tx }),
+  fetchTransactions: async () => {
+    set({ isLoading: true });
+    try {
+      const response = await api.get('/pos/history');
+      const data = response.data.data || [];
+      const parsedData = data.map((tx: Transaction) => ({
+        ...tx,
+        total: Number(tx.total) || 0,
+        profit: Number(tx.profit) || 0,
+        payment: Number(tx.payment) || 0,
+        change: Number(tx.change) || 0,
+        sedekah: Number(tx.sedekah) || 0,
+        items: tx.items ? tx.items.map((item: TransactionItem) => ({
+           ...item,
+           price: Number(item.price) || 0,
+           costPrice: Number(item.costPrice) || 0,
+           qty: Number(item.qty) || 0
+        })) : []
+      }));
+      set({ transactions: parsedData });
+    } catch (error) {
+      console.error('Failed to fetch transactions', error);
+    } finally {
+      set({ isLoading: false });
     }
-  )
-);
+  },
+  addTransaction: async (tx) => {
+    const response = await api.post('/pos/checkout', tx);
+    const newTx = response.data.data;
+    const parsedTx = {
+      ...newTx,
+      total: Number(newTx.total) || 0,
+      profit: Number(newTx.profit) || 0,
+      payment: Number(newTx.payment) || 0,
+      change: Number(newTx.change) || 0,
+      sedekah: Number(newTx.sedekah) || 0,
+    };
+    set({ transactions: [parsedTx, ...get().transactions] });
+  },
+  clearHistory: async () => {
+    await api.delete('/pos/history');
+    set({ transactions: [] });
+  },
+}));

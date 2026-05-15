@@ -15,22 +15,32 @@ import { ChevronLeft, Store } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import GlobalLoading from "@/components/GlobalLoading"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { UserRole } from "@/store/useAuthStore"
+import api from "@/lib/axios"
 
 export default function Register() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<UserRole>("Kasir");
   const [isRegistering, setIsRegistering] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsRegistering(true);
     
-    setTimeout(() => {
+    try {
+      await api.post('/auth/register', { name, username, email, password, role });
       toast.success("Registrasi berhasil! Silakan login.");
       navigate("/login");
-    }, 1500);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Registrasi gagal.");
+    } finally {
+      setIsRegistering(false);
+    }
   }
 
   return (
@@ -98,6 +108,18 @@ export default function Register() {
                 />
               </div>
               <div className="grid gap-2.5">
+                <Label htmlFor="username" className="text-slate-700 font-bold ml-1">Username</Label>
+                <Input 
+                  id="username" 
+                  type="text" 
+                  placeholder="budisantoso" 
+                  required 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="h-12 px-4 shadow-sm"
+                />
+              </div>
+              <div className="grid gap-2.5">
                 <Label htmlFor="email" className="text-slate-700 font-bold ml-1">Email</Label>
                 <Input 
                   id="email" 
@@ -120,6 +142,19 @@ export default function Register() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-12 px-4 shadow-sm"
                 />
+              </div>
+              <div className="grid gap-2.5">
+                <Label className="text-slate-700 font-bold ml-1">Daftar Sebagai</Label>
+                <Select value={role} onValueChange={(v: UserRole) => setRole(v)}>
+                  <SelectTrigger className="h-12 px-4 shadow-sm bg-white border-slate-200 text-slate-900 font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Owner" className="font-medium">Owner</SelectItem>
+                    <SelectItem value="Admin" className="font-medium">Admin</SelectItem>
+                    <SelectItem value="Kasir" className="font-medium">Kasir</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-6 pt-6">

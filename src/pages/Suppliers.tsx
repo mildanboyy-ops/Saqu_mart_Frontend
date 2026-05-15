@@ -7,23 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Search, Plus, Truck, Phone, MapPin, Trash2, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-
-interface Supplier {
-  id: string;
-  name: string;
-  contact: string;
-  address: string;
-  category: string;
-}
+import { useSupplierStore, type Supplier } from "@/store/useSupplierStore";
 
 export default function Suppliers() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([
-    { id: 'S1', name: 'Indofood Sukses Makmur', contact: '021-123456', address: 'Jakarta', category: 'Makanan' },
-    { id: 'S2', name: 'Unilever Indonesia', contact: '021-654321', address: 'Tangerang', category: 'Kebutuhan Rumah' },
-  ]);
-  
+  const suppliers = useSupplierStore(state => state.suppliers);
+  const addSupplier = useSupplierStore(state => state.addSupplier);
+  const updateSupplier = useSupplierStore(state => state.updateSupplier);
+  const deleteSupplier = useSupplierStore(state => state.deleteSupplier);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [newSupplier, setNewSupplier] = useState({ name: "", contact: "", address: "", category: "" });
 
   const filtered = suppliers.filter(s => 
@@ -31,16 +25,52 @@ export default function Suppliers() {
     s.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newSupplier.name) return;
-    setSuppliers([...suppliers, { ...newSupplier, id: `S${Date.now()}` }]);
-    setNewSupplier({ name: "", contact: "", address: "", category: "" });
-    setIsAddOpen(false);
-    toast.success("Supplier berhasil ditambahkan");
+    try {
+      await addSupplier(newSupplier);
+      setNewSupplier({ name: "", contact: "", address: "", category: "" });
+      setIsAddOpen(false);
+      toast.success("Supplier berhasil ditambahkan");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Gagal menambah supplier.");
+    }
+  };
+
+  const handleEdit = (s: Supplier) => {
+    setEditingSupplier({ ...s });
+    setIsEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingSupplier) return;
+    try {
+      await updateSupplier(editingSupplier.id, {
+        name: editingSupplier.name,
+        contact: editingSupplier.contact,
+        address: editingSupplier.address,
+        category: editingSupplier.category
+      });
+      setIsEditOpen(false);
+      toast.success("Data supplier berhasil diperbarui");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Gagal memperbarui supplier.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Hapus supplier ini?")) {
+      try {
+        await deleteSupplier(id);
+        toast.success("Supplier berhasil dihapus");
+      } catch (error) {
+        toast.error("Gagal menghapus supplier.");
+      }
+    }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-200">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Manajemen Supplier</h1>
@@ -82,7 +112,7 @@ export default function Suppliers() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="luxury-card bg-primary/5 border-primary/20">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
               <Truck className="h-6 w-6" />
@@ -95,7 +125,7 @@ export default function Suppliers() {
         </Card>
       </div>
 
-      <Card className="rounded-2xl border-none shadow-lg overflow-hidden">
+      <Card className="luxury-card rounded-2xl border-none overflow-hidden">
         <CardHeader className="bg-muted/50 border-b">
           <div className="flex items-center justify-between gap-4">
             <CardTitle>Daftar Pemasok</CardTitle>
@@ -123,16 +153,16 @@ export default function Suppliers() {
             </TableHeader>
             <TableBody>
               {filtered.map((s) => (
-                <TableRow key={s.id} className="group">
+                <TableRow key={s.id} className="table-row-hover group">
                   <TableCell className="pl-6 font-bold">{s.name}</TableCell>
                   <TableCell>
                     <span className="px-2 py-1 bg-muted rounded-md text-xs font-semibold">{s.category}</span>
                   </TableCell>
                   <TableCell className="text-sm"><Phone className="inline w-3 h-3 mr-1 opacity-50" /> {s.contact}</TableCell>
                   <TableCell className="text-sm"><MapPin className="inline w-3 h-3 mr-1 opacity-50" /> {s.address}</TableCell>
-                  <TableCell className="text-right pr-6 space-x-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10"><Edit className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10"><Trash2 className="w-4 h-4" /></Button>
+                  <TableCell className="text-right pr-6 space-x-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => handleEdit(s)}><Edit className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDelete(s.id)}><Trash2 className="w-4 h-4" /></Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -140,6 +170,39 @@ export default function Suppliers() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Supplier Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Data Supplier</DialogTitle></DialogHeader>
+          {editingSupplier && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Nama Perusahaan/Supplier</Label>
+                <Input value={editingSupplier.name} onChange={(e) => setEditingSupplier({...editingSupplier, name: e.target.value})} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Kategori Barang</Label>
+                  <Input value={editingSupplier.category} onChange={(e) => setEditingSupplier({...editingSupplier, category: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <Label>No. Telepon</Label>
+                  <Input value={editingSupplier.contact} onChange={(e) => setEditingSupplier({...editingSupplier, contact: e.target.value})} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Alamat</Label>
+                <Input value={editingSupplier.address} onChange={(e) => setEditingSupplier({...editingSupplier, address: e.target.value})} />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditOpen(false)}>Batal</Button>
+            <Button onClick={handleSaveEdit}>Simpan Perubahan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -8,18 +8,42 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { useProductStore } from "@/store/useProductStore";
 import { toast } from "sonner";
+import { useState } from "react";
+
 
 export default function Settings() {
   const settings = useSettingsStore();
   const { transactions, clearHistory } = useTransactionStore();
   const { products } = useProductStore();
 
-  const handleSaveStore = () => {
-    toast.success("Informasi toko berhasil disimpan!");
+  const [localStore, setLocalStore] = useState({
+    storeName: settings.storeName,
+    storeAddress: settings.storeAddress,
+    storePhone: settings.storePhone,
+    receiptFooter: settings.receiptFooter
+  });
+
+  const [localPOS, setLocalPOS] = useState({
+    taxRate: settings.taxRate,
+    printerName: settings.printerName
+  });
+
+  const handleSaveStore = async () => {
+    try {
+      await settings.updateSettings(localStore);
+      toast.success("Informasi toko berhasil disimpan!");
+    } catch (error) {
+      toast.error("Gagal menyimpan informasi toko.");
+    }
   };
 
-  const handleSavePOS = () => {
-    toast.success("Pengaturan POS berhasil disimpan!");
+  const handleSavePOS = async () => {
+    try {
+      await settings.updateSettings(localPOS);
+      toast.success("Pengaturan POS berhasil disimpan!");
+    } catch (error) {
+      toast.error("Gagal menyimpan pengaturan POS.");
+    }
   };
 
   const handleBackup = () => {
@@ -64,7 +88,7 @@ export default function Settings() {
         </TabsList>
 
         <TabsContent value="store">
-          <Card>
+          <Card className="luxury-card">
             <CardHeader>
               <CardTitle>Informasi Toko</CardTitle>
               <CardDescription>Detail identitas toko yang akan muncul di struk.</CardDescription>
@@ -72,19 +96,19 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="store-name">Nama Toko</Label>
-                <Input id="store-name" value={settings.storeName} onChange={(e) => settings.updateSettings({ storeName: e.target.value })} />
+                <Input id="store-name" value={localStore.storeName} onChange={(e) => setLocalStore({...localStore, storeName: e.target.value})} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="address">Alamat</Label>
-                <Input id="address" value={settings.storeAddress} onChange={(e) => settings.updateSettings({ storeAddress: e.target.value })} />
+                <Input id="address" value={localStore.storeAddress} onChange={(e) => setLocalStore({...localStore, storeAddress: e.target.value})} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone">No. Telepon</Label>
-                <Input id="phone" value={settings.storePhone} onChange={(e) => settings.updateSettings({ storePhone: e.target.value })} />
+                <Input id="phone" value={localStore.storePhone} onChange={(e) => setLocalStore({...localStore, storePhone: e.target.value})} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="footer">Footer Struk</Label>
-                <Input id="footer" value={settings.receiptFooter} onChange={(e) => settings.updateSettings({ receiptFooter: e.target.value })} />
+                <Input id="footer" value={localStore.receiptFooter} onChange={(e) => setLocalStore({...localStore, receiptFooter: e.target.value})} />
               </div>
             </CardContent>
             <CardFooter>
@@ -94,7 +118,7 @@ export default function Settings() {
         </TabsContent>
 
         <TabsContent value="pos">
-          <Card>
+          <Card className="luxury-card">
             <CardHeader>
               <CardTitle>Pengaturan POS</CardTitle>
               <CardDescription>Konfigurasi struk dan printer thermal.</CardDescription>
@@ -102,11 +126,11 @@ export default function Settings() {
             <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="tax">Pajak (%)</Label>
-                <Input id="tax" type="number" value={settings.taxRate} onChange={(e) => settings.updateSettings({ taxRate: Number(e.target.value) })} />
+                <Input id="tax" type="number" value={localPOS.taxRate} onChange={(e) => setLocalPOS({...localPOS, taxRate: Number(e.target.value)})} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="printer">Printer Thermal</Label>
-                <Input id="printer" value={settings.printerName} onChange={(e) => settings.updateSettings({ printerName: e.target.value })} />
+                <Input id="printer" value={localPOS.printerName} onChange={(e) => setLocalPOS({...localPOS, printerName: e.target.value})} />
               </div>
             </CardContent>
             <CardFooter>
@@ -116,7 +140,7 @@ export default function Settings() {
         </TabsContent>
 
         <TabsContent value="system">
-          <Card>
+          <Card className="luxury-card">
             <CardHeader>
               <CardTitle>Maintenance Sistem</CardTitle>
               <CardDescription>Backup data dan log aktivitas.</CardDescription>

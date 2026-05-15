@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import api from '@/lib/axios';
 
 interface SettingsState {
   storeName: string;
@@ -8,22 +8,36 @@ interface SettingsState {
   taxRate: number;
   printerName: string;
   receiptFooter: string;
-  updateSettings: (data: Partial<Omit<SettingsState, 'updateSettings'>>) => void;
+  isIslamicMode: boolean;
+  autoSedekah: boolean;
+  fetchSettings: () => Promise<void>;
+  updateSettings: (data: Partial<Omit<SettingsState, 'updateSettings' | 'fetchSettings'>>) => Promise<void>;
 }
 
-export const useSettingsStore = create<SettingsState>()(
-  persist(
-    (set) => ({
-      storeName: 'SAQU MART (Sahabat Quran Mart)',
-      storeAddress: 'Bumi Sawangan Indah 2 Blok D2 No 90, RT.005/RW.010, Pengasinan, Kec. Sawangan, Kota Depok, Jawa Barat 16518',
-      storePhone: '0858-1754-1154',
-      taxRate: 0,
-      printerName: 'EPSON TM-T88V',
-      receiptFooter: 'Terima kasih telah berbelanja!',
-      updateSettings: (data) => set((state) => ({ ...state, ...data })),
-    }),
-    {
-      name: 'saqumart-settings',
+export const useSettingsStore = create<SettingsState>((set) => ({
+  storeName: 'SAQU MART',
+  storeAddress: '',
+  storePhone: '',
+  taxRate: 0,
+  printerName: 'EPSON TM-T88V',
+  receiptFooter: 'Terima kasih telah berbelanja!',
+  isIslamicMode: false,
+  autoSedekah: false,
+  fetchSettings: async () => {
+    try {
+      const response = await api.get('/settings');
+      set({ ...response.data.data });
+    } catch {
+      console.error('Failed to fetch settings');
     }
-  )
-);
+  },
+  updateSettings: async (data) => {
+    try {
+      const response = await api.post('/settings', data);
+      set({ ...response.data.data });
+    } catch (error) {
+      console.error('Failed to update settings');
+      throw error;
+    }
+  },
+}));

@@ -1,11 +1,6 @@
 import { create } from 'zustand';
 
-export interface Product {
-  id: string;
-  barcode: string;
-  name: string;
-  price: number;
-}
+import type { Product } from './useProductStore';
 
 export interface CartItem extends Product {
   qty: number;

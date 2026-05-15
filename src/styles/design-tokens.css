@@ -1,0 +1,103 @@
+/* ================================================================
+   SAQUMART GOD-TIER DESIGN TOKENS
+   A comprehensive design system for enterprise-grade consistency
+   ================================================================ */
+
+:root {
+  /* ── Color System ────────────────────────────────────── */
+  --sq-emerald-50: #ecfdf5;
+  --sq-emerald-100: #d1fae5;
+  --sq-emerald-200: #a7f3d0;
+  --sq-emerald-300: #6ee7b7;
+  --sq-emerald-400: #34d399;
+  --sq-emerald-500: #10b981;
+  --sq-emerald-600: #059669;
+  --sq-emerald-700: #047857;
+  --sq-emerald-800: #065f46;
+  --sq-emerald-900: #064e3b;
+
+  --sq-gold-400: #fbbf24;
+  --sq-gold-500: #f59e0b;
+  --sq-gold-600: #d97706;
+
+  --sq-navy-800: #1e293b;
+  --sq-navy-900: #0f172a;
+  --sq-navy-950: #020617;
+
+  --sq-cyan-400: #22d3ee;
+  --sq-cyan-500: #06b6d4;
+
+  /* Semantic Colors */
+  --sq-success: #10b981;
+  --sq-warning: #f59e0b;
+  --sq-danger: #ef4444;
+  --sq-info: #3b82f6;
+
+  /* ── Typography Scale ────────────────────────────────── */
+  --sq-font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --sq-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --sq-font-display: 'Plus Jakarta Sans', sans-serif;
+
+  --sq-text-xs: 0.625rem;    /* 10px */
+  --sq-text-sm: 0.75rem;     /* 12px */
+  --sq-text-base: 0.875rem;  /* 14px */
+  --sq-text-lg: 1rem;        /* 16px */
+  --sq-text-xl: 1.25rem;     /* 20px */
+  --sq-text-2xl: 1.5rem;     /* 24px */
+  --sq-text-3xl: 1.875rem;   /* 30px */
+  --sq-text-4xl: 2.25rem;    /* 36px */
+  --sq-text-5xl: 3rem;       /* 48px */
+  --sq-text-6xl: 3.75rem;    /* 60px */
+
+  /* ── Spacing Scale (4px grid) ────────────────────────── */
+  --sq-space-1: 0.25rem;   /* 4px */
+  --sq-space-2: 0.5rem;    /* 8px */
+  --sq-space-3: 0.75rem;   /* 12px */
+  --sq-space-4: 1rem;      /* 16px */
+  --sq-space-5: 1.25rem;   /* 20px */
+  --sq-space-6: 1.5rem;    /* 24px */
+  --sq-space-8: 2rem;      /* 32px */
+  --sq-space-10: 2.5rem;   /* 40px */
+  --sq-space-12: 3rem;     /* 48px */
+  --sq-space-16: 4rem;     /* 64px */
+
+  /* ── Shadow System ───────────────────────────────────── */
+  --sq-shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --sq-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.06);
+  --sq-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.08);
+  --sq-shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.08);
+  --sq-shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.15);
+  --sq-shadow-glow-primary: 0 0 20px rgba(16, 185, 129, 0.25);
+  --sq-shadow-glow-gold: 0 0 20px rgba(245, 158, 11, 0.25);
+  --sq-shadow-glow-danger: 0 0 20px rgba(239, 68, 68, 0.25);
+  --sq-shadow-glow-cyan: 0 0 20px rgba(6, 182, 212, 0.25);
+
+  /* ── Border Radius ───────────────────────────────────── */
+  --sq-radius-sm: 0.375rem;   /* 6px */
+  --sq-radius-md: 0.5rem;     /* 8px */
+  --sq-radius-lg: 0.75rem;    /* 12px */
+  --sq-radius-xl: 1rem;       /* 16px */
+  --sq-radius-2xl: 1.25rem;   /* 20px */
+  --sq-radius-3xl: 1.5rem;    /* 24px */
+  --sq-radius-full: 9999px;
+
+  /* ── Animation Timing ────────────────────────────────── */
+  --sq-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --sq-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --sq-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --sq-duration-fast: 150ms;
+  --sq-duration-normal: 250ms;
+  --sq-duration-slow: 400ms;
+  --sq-duration-slower: 600ms;
+
+  /* ── Z-Index Layers ──────────────────────────────────── */
+  --sq-z-dropdown: 50;
+  --sq-z-sticky: 60;
+  --sq-z-overlay: 70;
+  --sq-z-modal: 80;
+  --sq-z-popover: 90;
+  --sq-z-toast: 100;
+  --sq-z-dynamic-island: 110;
+  --sq-z-command: 200;
+  --sq-z-lock: 9999;
+}

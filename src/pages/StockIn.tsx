@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowDownToLine, Search, Plus } from "lucide-react";
 import { useProductStore } from "@/store/useProductStore";
+import { useRealtimeStore } from "@/store/useRealtimeStore";
 import { toast } from "sonner";
 
 export default function StockIn() {
@@ -16,7 +17,7 @@ export default function StockIn() {
 
   const foundProduct = products.find(p => p.barcode === barcode);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!foundProduct) {
       toast.error("Barcode tidak ditemukan!");
@@ -27,11 +28,23 @@ export default function StockIn() {
       return;
     }
 
-    updateStock(barcode, amount);
-    setHistory([{ name: foundProduct.name, qty: amount, time: new Date().toLocaleTimeString() }, ...history]);
-    toast.success(`Berhasil menambah ${amount} stok untuk ${foundProduct.name}`);
-    setBarcode("");
-    setAmount(0);
+    try {
+      await updateStock(barcode, amount);
+      setHistory([{ name: foundProduct.name, qty: amount, time: new Date().toLocaleTimeString() }, ...history]);
+      
+      const { addEvent } = useRealtimeStore.getState();
+      addEvent({
+        type: 'stock',
+        message: `Stok Masuk: ${foundProduct.name} (+${amount})`,
+        branch: 'Cabang Utama'
+      });
+      
+      toast.success(`Berhasil menambah ${amount} stok for ${foundProduct.name}`);
+      setBarcode("");
+      setAmount(0);
+    } catch (error) {
+      toast.error("Gagal memperbarui stok di server.");
+    }
   };
 
   return (
@@ -44,7 +57,7 @@ export default function StockIn() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="luxury-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5 text-green-500" />
@@ -93,7 +106,7 @@ export default function StockIn() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="luxury-card">
           <CardHeader>
             <CardTitle>Riwayat Input (Sesi Ini)</CardTitle>
           </CardHeader>
@@ -115,7 +128,7 @@ export default function StockIn() {
                   </TableRow>
                 )}
                 {history.map((h, i) => (
-                  <TableRow key={i}>
+                  <TableRow key={i} className="table-row-hover">
                     <TableCell className="font-medium">{h.name}</TableCell>
                     <TableCell className="text-green-600 font-bold">+{h.qty}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{h.time}</TableCell>

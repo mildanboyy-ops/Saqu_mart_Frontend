@@ -17,7 +17,10 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Users2,
-  Truck
+  Truck,
+  BrainCircuit,
+  Trophy,
+  Building2
 } from 'lucide-react';
 import { useTheme } from '@/components/theme-provider';
 import { Button } from '@/components/ui/button';
@@ -29,6 +32,17 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useTransactionStore } from '@/store/useTransactionStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useProductStore } from '@/store/useProductStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import NotificationCenter from '@/components/realtime/NotificationCenter';
+import { QuickStartGuide } from '@/components/QuickStartGuide';
+import { HelpCircle, Quote } from 'lucide-react';
+import { GlobalAIAssistant } from '@/components/ai/GlobalAIAssistant';
+import { useNavStore } from '@/store/useNavStore';
+import LiveTransactionStream from '@/components/dashboard/LiveTransactionStream';
+import SplashScreen from '@/components/shared/SplashScreen';
+import QuickActionDock from '@/components/shared/QuickActionDock';
+import SystemPerformanceHUD from '@/components/shared/SystemPerformanceHUD';
 
 const BANKS = [
   { id: 'BCA', name: 'BCA' },
@@ -44,7 +58,7 @@ const sidebarGroups = [
     title: 'Utama',
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['Owner', 'Admin', 'Kasir'] },
-      { icon: ShoppingCart, label: 'Kasir POS', path: '/pos', roles: ['Owner', 'Admin', 'Kasir'], badge: 'New' },
+      { icon: ShoppingCart, label: 'Kasir POS', path: '/pos', roles: ['Owner', 'Admin', 'Kasir'], badge: 'POS' },
     ]
   },
   {
@@ -61,6 +75,14 @@ const sidebarGroups = [
     items: [
       { icon: BarChart3, label: 'Laporan', path: '/reports', roles: ['Owner', 'Admin'] },
       { icon: Users2, label: 'Member', path: '/members', roles: ['Owner', 'Admin', 'Kasir'] },
+    ]
+  },
+  {
+    title: 'AI & Intelligence',
+    items: [
+      { icon: BrainCircuit, label: 'AI Analytics', path: '/ai-analytics', roles: ['Owner', 'Admin'], badge: 'AI' },
+      { icon: Trophy, label: 'Gamification', path: '/gamification', roles: ['Owner', 'Admin'] },
+      { icon: Building2, label: 'Multi-Branch', path: '/branches', roles: ['Owner'] },
     ]
   },
   {
@@ -94,15 +116,40 @@ function RealTimeClock() {
 
 export default function DashboardLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   const [collapsed, setCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
     return saved ? JSON.parse(saved) : false;
   });
   
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuthStore();
-  const { transactions, addTransaction } = useTransactionStore();
+  const user = useAuthStore(state => state.user);
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const logout = useAuthStore(state => state.logout);
+  const transactions = useTransactionStore(state => state.transactions);
+  const addTransaction = useTransactionStore(state => state.addTransaction);
+  const products = useProductStore(state => state.products);
+  const isIslamicMode = useSettingsStore(state => state.isIslamicMode);
   const totalRevenue = transactions.reduce((acc, tx) => acc + tx.total, 0);
+  const cashBalance = transactions.reduce((acc, tx) => acc + (tx.method === 'Cash' ? tx.total : 0), 0);
+  const bankBalance = transactions.reduce((acc, tx) => acc + (['Transfer', 'Debit', 'QRIS'].includes(tx.method) ? tx.total : 0), 0);
+  const piutangBalance = transactions.reduce((acc, tx) => acc + (tx.method === 'Hutang' ? tx.total : 0), 0);
+  
+  const lowStockCount = products.filter(p => p.stock < 5).length;
 
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -127,7 +174,7 @@ export default function DashboardLayout() {
       profit: -amount,
       payment: 0,
       change: 0,
-      method: 'Non-Cash'
+      method: 'Transfer'
     });
 
     toast.success(`Penarikan Rp ${amount.toLocaleString()} berhasil diproses ke ${withdrawBank}`);
@@ -136,11 +183,41 @@ export default function DashboardLayout() {
     setWithdrawAccount('');
   };
 
+  const { recentItems } = useNavStore();
+
   const toggleSidebar = () => {
     const newState = !collapsed;
     setCollapsed(newState);
     localStorage.setItem('sidebar-collapsed', JSON.stringify(newState));
   };
+
+  // Auto-collapse on small desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1200) setCollapsed(true);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
+  const [aiQuote, setAiQuote] = useState("Bekerja adalah ibadah. Awali dengan Bismillah.");
+  
+  useEffect(() => {
+    if (isIslamicMode) {
+      const quotes = [
+        "Bekerja adalah ibadah. Awali dengan Bismillah.",
+        "Rezeki yang berkah lebih baik dari yang melimpah tapi sia-sia.",
+        "Jujur dalam berniaga adalah kunci keberkahan.",
+        "Jangan lupa sedekah dari sebagian keuntunganmu.",
+        "Shalat tepat waktu, kunci kesuksesan dunia akhirat."
+      ];
+      const interval = setInterval(() => {
+        setAiQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isIslamicMode]);
 
   const handleLogout = () => {
     logout();
@@ -184,10 +261,23 @@ export default function DashboardLayout() {
                   <Wallet className="h-4 w-4 text-primary" />
                 </div>
                 <div className="text-[10px] font-black uppercase tracking-widest text-primary/60">
-                  Income Balance
+                  Total Kas
                 </div>
               </div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">Rp {totalRevenue.toLocaleString()}</p>
+              <div className="space-y-1.5 mb-4">
+                 <div className="flex justify-between text-xs font-bold">
+                    <span className="text-muted-foreground">Tunai</span>
+                    <span className="text-slate-900 dark:text-white tracking-tight">Rp {cashBalance.toLocaleString()}</span>
+                 </div>
+                 <div className="flex justify-between text-xs font-bold">
+                    <span className="text-muted-foreground">Bank/QRIS</span>
+                    <span className="text-slate-900 dark:text-white tracking-tight">Rp {bankBalance.toLocaleString()}</span>
+                 </div>
+                 <div className="flex justify-between text-xs font-bold border-t border-primary/10 pt-1.5">
+                    <span className="text-destructive/80">Piutang Pelanggan</span>
+                    <span className="text-destructive tracking-tight">Rp {piutangBalance.toLocaleString()}</span>
+                 </div>
+              </div>
               <Button 
                 size="sm" 
                 onClick={() => setIsWithdrawOpen(true)} 
@@ -251,18 +341,38 @@ export default function DashboardLayout() {
             </div>
           );
         })}
+
+        {/* AI Suggested / Recent Menu */}
+        {recentItems.length > 0 && (!collapsed || isMobileMenuOpen) && (
+          <div className="pt-4 px-3 space-y-3">
+             <p className="px-3 text-[10px] font-black uppercase tracking-[0.2em] text-primary/40">AI Recommended</p>
+             <div className="grid grid-cols-2 gap-2">
+                {recentItems.map((item) => (
+                  <Link 
+                    key={item.path} 
+                    to={item.path}
+                    className="flex flex-col items-center justify-center p-2 rounded-2xl bg-primary/5 hover:bg-primary/10 border border-primary/10 transition-all group"
+                  >
+                    <span className="text-[10px] font-bold text-primary/70 group-hover:text-primary">{item.label}</span>
+                  </Link>
+                ))}
+             </div>
+          </div>
+        )}
       </nav>
 
       {(!collapsed || isMobileMenuOpen) && (
         <div className="px-4 py-4 space-y-3">
           <div className="bg-muted/50 rounded-2xl p-3 border border-border flex items-center gap-3">
             <div className="relative">
-              <div className="w-2.5 h-2.5 bg-green-500 rounded-full" />
-              <div className="absolute inset-0 w-2.5 h-2.5 bg-green-500 rounded-full animate-ping opacity-75" />
+              <div className={cn("w-2.5 h-2.5 rounded-full", isOnline ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
+              {isOnline && <div className="absolute inset-0 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping opacity-75" />}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-none mb-1.5">System Status</p>
-              <p className="text-[11px] font-bold text-foreground truncate">Server Terhubung</p>
+              <p className={cn("text-[11px] font-black truncate", isOnline ? "text-emerald-600" : "text-destructive")}>
+                {isOnline ? "OPERATIONAL" : "CONNECTION LOST"}
+              </p>
             </div>
           </div>
 
@@ -292,7 +402,15 @@ export default function DashboardLayout() {
   );
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden relative">
+    <>
+    <AnimatePresence>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+    </AnimatePresence>
+
+    <div className={cn("flex h-screen bg-background overflow-hidden relative", isIslamicMode && "islamic-mode")}>
+      <QuickActionDock />
+      <SystemPerformanceHUD />
+
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -305,6 +423,10 @@ export default function DashboardLayout() {
           />
         )}
       </AnimatePresence>
+
+      {isIslamicMode && (
+        <div className="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0" style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/arabesque.png')` }} />
+      )}
 
       {/* Sidebar - Desktop & Mobile */}
       <aside
@@ -340,12 +462,66 @@ export default function DashboardLayout() {
 
             <div className="flex items-center gap-2 font-bold text-lg md:text-xl text-primary">
               <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
-              <span className="tracking-tight hidden xs:block">SaquMart</span>
+              <span className="tracking-tight hidden xs:block font-black">Saqu<span className="text-slate-900 dark:text-white">Mart</span></span>
             </div>
+            
+            <div className="hidden lg:flex items-center gap-4 ml-6">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">Live Revenue</span>
+                <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                   <motion.span 
+                    key={totalRevenue}
+                    initial={{ scale: 1.1, color: "#10b981" }}
+                    animate={{ scale: 1, color: "unset" }}
+                    className="text-sm font-black tabular-nums"
+                   >
+                    Rp {totalRevenue.toLocaleString()}
+                   </motion.span>
+                </div>
+              </div>
+              
+               
+              {isIslamicMode && (
+                <div className="hidden xl:flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-2xl border border-primary/10 animate-in fade-in slide-in-from-left-4">
+                  <Quote className="h-3 w-3 text-primary" />
+                  <span className="text-[11px] font-medium text-primary italic max-w-[150px] truncate">
+                    {aiQuote}
+                  </span>
+                </div>
+              )}
+
+              <div className="hidden lg:block border-l pl-4">
+                 <LiveTransactionStream />
+              </div>
+            </div>
+
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
             <RealTimeClock />
+            
+            {lowStockCount > 0 && (
+              <Button variant="ghost" size="icon" className="relative rounded-full h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors">
+                <Package className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center animate-pulse border-2 border-card">
+                  {lowStockCount}
+                </span>
+              </Button>
+            )}
+
+            <div className="relative">
+              <NotificationCenter />
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full h-9 w-9 text-primary hover:bg-primary/10"
+              onClick={() => setIsHelpOpen(true)}
+            >
+              <HelpCircle className="h-4 w-4 md:h-5 md:w-5" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -370,7 +546,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/20 p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-mesh-gradient p-4 md:p-8">
           <div className="max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
@@ -378,7 +554,7 @@ export default function DashboardLayout() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.15 }}
               >
                 <Outlet />
               </motion.div>
@@ -451,6 +627,9 @@ export default function DashboardLayout() {
           </form>
         </DialogContent>
       </Dialog>
+      <QuickStartGuide isOpen={isHelpOpen} onOpenChange={setIsHelpOpen} />
+      <GlobalAIAssistant />
     </div>
+    </>
   );
 }

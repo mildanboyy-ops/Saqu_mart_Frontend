@@ -14,10 +14,14 @@ import type { ManagedUser } from "@/store/useUserStore";
 import type { UserRole } from "@/store/useAuthStore";
 import { toast } from "sonner";
 
-const emptyForm = { name: "", email: "", role: "Kasir" as UserRole, status: "Active" as "Active" | "Inactive", phone: "" };
+const emptyForm = { name: "", username: "", email: "", role: "Kasir" as UserRole, status: "Active" as "Active" | "Inactive", phone: "" };
 
 export default function Users() {
-  const { users, addUser, updateUser, deleteUser, toggleStatus } = useUserStore();
+  const users = useUserStore(state => state.users);
+  const addUser = useUserStore(state => state.addUser);
+  const updateUser = useUserStore(state => state.updateUser);
+  const deleteUser = useUserStore(state => state.deleteUser);
+  const toggleStatus = useUserStore(state => state.toggleStatus);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -29,30 +33,39 @@ export default function Users() {
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.name || !form.email) { toast.error("Nama dan Email wajib diisi!"); return; }
-    addUser(form);
-    toast.success("User berhasil ditambahkan!");
-    setForm(emptyForm);
-    setIsAddOpen(false);
+    try {
+      await addUser(form);
+      toast.success("User berhasil ditambahkan!");
+      setForm(emptyForm);
+      setIsAddOpen(false);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Gagal menambah user.");
+    }
   };
 
   const handleEditOpen = (u: ManagedUser) => {
     setEditId(u.id);
-    setForm({ name: u.name, email: u.email, role: u.role, status: u.status as "Active" | "Inactive", phone: u.phone || "" });
+    setForm({ name: u.name, username: u.username, email: u.email, role: u.role, status: u.status as "Active" | "Inactive", phone: u.phone || "" });
     setIsEditOpen(true);
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!form.name || !form.email) { toast.error("Nama dan Email wajib diisi!"); return; }
-    updateUser(editId, form);
-    toast.success("User berhasil diperbarui!");
-    setIsEditOpen(false);
+    try {
+      await updateUser(editId, form);
+      toast.success("User berhasil diperbarui!");
+      setIsEditOpen(false);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Gagal memperbarui user.");
+    }
   };
 
-  const roleColor = (role: string) => {
-    if (role === "Owner") return "bg-amber-500/10 text-amber-600 border-amber-500/20";
-    if (role === "Admin") return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+  const roleColor = (role: UserRole) => {
+    const roleName = typeof role === 'object' ? (role as any).name : role;
+    if (roleName === "Owner") return "bg-amber-500/10 text-amber-600 border-amber-500/20";
+    if (roleName === "Admin") return "bg-blue-500/10 text-blue-600 border-blue-500/20";
     return "bg-green-500/10 text-green-600 border-green-500/20";
   };
 
@@ -61,6 +74,10 @@ export default function Users() {
       <div className="grid gap-2">
         <Label>Nama Lengkap</Label>
         <Input value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} placeholder="Nama karyawan" />
+      </div>
+      <div className="grid gap-2">
+        <Label>Username</Label>
+        <Input value={form.username} onChange={(e) => setForm({...form, username: e.target.value})} placeholder="username_karyawan" />
       </div>
       <div className="grid gap-2">
         <Label>Email</Label>
@@ -85,7 +102,7 @@ export default function Users() {
   );
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 animate-in fade-in duration-200">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Manajemen User</h1>
@@ -109,7 +126,7 @@ export default function Users() {
         </Dialog>
       </div>
 
-      <Card>
+      <Card className="luxury-card border-none overflow-hidden">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle>Daftar User ({users.length})</CardTitle>
@@ -133,7 +150,7 @@ export default function Users() {
             </TableHeader>
             <TableBody>
               {filtered.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user.id} className="table-row-hover">
                   <TableCell>
                     <Avatar><AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>
                   </TableCell>
@@ -144,7 +161,7 @@ export default function Users() {
                   <TableCell>
                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${roleColor(user.role)}`}>
                       <Shield className="h-3 w-3" />
-                      {user.role}
+                      {typeof user.role === 'object' ? (user.role as any).name : user.role}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -156,14 +173,28 @@ export default function Users() {
                     {new Date(user.createdAt).toLocaleDateString("id-ID")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => toggleStatus(user.id)} title="Toggle Status">
+                    <Button variant="ghost" size="icon" onClick={async () => {
+                      try {
+                        await toggleStatus(user.id);
+                        toast.success("Status diperbarui");
+                      } catch (error) {
+                        toast.error("Gagal mengubah status.");
+                      }
+                    }} title="Toggle Status">
                       <Power className="h-4 w-4 text-amber-500" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleEditOpen(user)} title="Edit">
                       <Edit2 className="h-4 w-4 text-blue-500" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => {
-                      if (confirm(`Hapus user ${user.name}?`)) { deleteUser(user.id); toast.success("User dihapus"); }
+                    <Button variant="ghost" size="icon" onClick={async () => {
+                      if (confirm(`Hapus user ${user.name}?`)) {
+                        try {
+                          await deleteUser(user.id);
+                          toast.success("User dihapus");
+                        } catch (error) {
+                          toast.error("Gagal menghapus user.");
+                        }
+                      }
                     }} title="Hapus"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </TableCell>
                 </TableRow>

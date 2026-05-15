@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCart } from '@/store/useCart';
 import { toast } from 'sonner';
-import { Trash2, Plus, Minus, Search, Banknote, Printer, ChevronLeft, Camera, PackagePlus } from 'lucide-react';
+import { Trash2, Plus, Minus, Search, Banknote, Printer, ChevronLeft, Camera, PackagePlus, Share2, Mail, QrCode } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -41,10 +42,10 @@ export default function POS() {
   const [discount, setDiscount] = useState(0);
   const settings = useSettingsStore();
   const taxRate = settings.taxRate;
-  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Non-Cash'>('Cash');
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Transfer' | 'Debit' | 'QRIS' | 'Hutang'>('Cash');
   const [isTempProductOpen, setIsTempProductOpen] = useState(false);
   const [tempProduct, setTempProduct] = useState({ name: '', price: '' });
-  const [selectedMember, setSelectedMember] = useState<{name: string, phone: string, balance: number} | null>(null);
+  const [selectedMember, setSelectedMember] = useState<{id: string, name: string, phone: string, balance: number, debt: number, debtLimit?: number} | null>(null);
   const [isDepositChange, setIsDepositChange] = useState(false);
   const [lastTransaction, setLastTransaction] = useState<any>(null);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
@@ -159,7 +160,6 @@ export default function POS() {
     }, 0) - discount;
 
     const txData = {
-      id: `TRX-${Date.now()}`,
       items: cart.map(i => ({
         id: i.id,
         name: i.name,
@@ -172,11 +172,12 @@ export default function POS() {
       payment: paymentMethod === 'Cash' ? pay : finalTotal,
       change: (selectedMember && isDepositChange) ? 0 : kembalian,
       method: paymentMethod,
-      timestamp: new Date().toISOString()
+      memberId: selectedMember?.id
     };
 
     addTransaction(txData);
-    setLastTransaction(txData);
+    setLastTransaction({ ...txData, id: `TRX-${Date.now()}`, timestamp: new Date().toISOString() });
+
 
     cart.forEach(item => {
       const product = products.find(p => p.barcode === item.barcode);
@@ -464,9 +465,12 @@ export default function POS() {
               <h2 className="text-5xl font-black text-primary tracking-tighter">Rp {finalTotal.toLocaleString()}</h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant={paymentMethod === 'Cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Cash')} className="h-14 font-bold">TUNAI</Button>
-              <Button variant={paymentMethod === 'Non-Cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Non-Cash')} className="h-14 font-bold">QRIS / DEBIT</Button>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <Button variant={paymentMethod === 'Cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Cash')} className="h-12 font-bold">TUNAI</Button>
+              <Button variant={paymentMethod === 'Transfer' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Transfer')} className="h-12 font-bold">TRANSFER</Button>
+              <Button variant={paymentMethod === 'Debit' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Debit')} className="h-12 font-bold">DEBIT</Button>
+              <Button variant={paymentMethod === 'QRIS' ? 'default' : 'outline'} onClick={() => setPaymentMethod('QRIS')} className="h-12 font-bold">QRIS</Button>
+              <Button variant={paymentMethod === 'Hutang' ? 'destructive' : 'outline'} onClick={() => setPaymentMethod('Hutang')} className={cn("h-12 font-bold", paymentMethod !== 'Hutang' && "text-destructive border-destructive hover:bg-destructive/10")}>HUTANG / PIUTANG</Button>
             </div>
 
             {paymentMethod === 'Cash' && (
@@ -504,49 +508,80 @@ export default function POS() {
         </DialogContent>
       </Dialog>
 
-      {/* Receipt Modal */}
       <Dialog open={isReceiptOpen} onOpenChange={(open) => { if(!open) handleNextTransaction(); }}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader className="items-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-2">
-              <Printer className="h-8 w-8 text-green-600" />
-            </div>
-            <DialogTitle className="text-2xl">Transaksi Berhasil</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden rounded-[3rem] border-none shadow-2xl">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 via-primary to-emerald-400" />
           
-          <div className="border-y-2 border-dashed my-4 py-4 space-y-3 font-mono text-sm">
-             <div className="text-center font-bold mb-4">
-               <p className="text-lg">{settings.storeName}</p>
-               <p className="text-[10px] font-normal">{settings.storeAddress}</p>
-             </div>
-             {lastTransaction?.items.map((item: any, idx: number) => (
-               <div key={idx} className="flex justify-between">
-                 <span>{item.name} x{item.qty}</span>
-                 <span>{(item.price * item.qty).toLocaleString()}</span>
+          <div className="p-8 space-y-6">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-2"
+              >
+                <div className="w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                   <Printer className="h-7 w-7 text-white" />
+                </div>
+              </motion.div>
+              <h2 className="text-2xl font-black tracking-tight">TRANSAKSI BERHASIL</h2>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">E-Receipt #TX-{lastTransaction?.id.slice(0,8)}</p>
+            </div>
+            
+            <div className="bg-slate-50 dark:bg-white/5 rounded-[2rem] p-6 border-2 border-dashed border-muted-foreground/20 space-y-4 font-mono">
+               <div className="text-center space-y-1 mb-6">
+                 <p className="text-lg font-black">{settings.storeName}</p>
+                 <p className="text-[10px] opacity-60 leading-tight">{settings.storeAddress}</p>
                </div>
-             ))}
-             <div className="border-t border-dashed pt-3">
-               <div className="flex justify-between font-bold">
-                 <span>TOTAL</span>
-                 <span>Rp {lastTransaction?.total.toLocaleString()}</span>
+               
+               <div className="space-y-2 text-xs">
+                 {lastTransaction?.items.map((item: any, idx: number) => (
+                   <div key={idx} className="flex justify-between">
+                     <span className="font-medium text-slate-600 dark:text-slate-300">{item.name} x{item.qty}</span>
+                     <span className="font-black">{(item.price * item.qty).toLocaleString()}</span>
+                   </div>
+                 ))}
                </div>
-               <div className="flex justify-between text-xs opacity-70">
-                 <span>BAYAR ({lastTransaction?.method})</span>
-                 <span>{lastTransaction?.payment.toLocaleString()}</span>
-               </div>
-               <div className="flex justify-between text-xs opacity-70">
-                 <span>KEMBALI</span>
-                 <span>{lastTransaction?.change.toLocaleString()}</span>
-               </div>
-             </div>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <Button className="w-full gap-2" onClick={printReceipt}><Printer className="h-4 w-4" /> Cetak Struk Fisik</Button>
-            <Button variant="outline" className="w-full" onClick={handleNextTransaction}>Transaksi Baru</Button>
+               <div className="border-t-2 border-dashed border-muted-foreground/20 pt-4 space-y-2">
+                 <div className="flex justify-between text-lg font-black text-primary">
+                   <span>TOTAL</span>
+                   <span>Rp {lastTransaction?.total.toLocaleString()}</span>
+                 </div>
+                 <div className="flex justify-between text-[10px] font-bold opacity-60">
+                   <span className="uppercase">METODE: {lastTransaction?.method}</span>
+                   <span>PAY: {lastTransaction?.payment.toLocaleString()}</span>
+                 </div>
+               </div>
+
+               <div className="flex flex-col items-center pt-4 opacity-30 group hover:opacity-100 transition-opacity">
+                  <QrCode className="h-16 w-16 mb-2" />
+                  <p className="text-[8px] font-black uppercase tracking-[0.3em]">Blockchain Verified</p>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button className="h-12 rounded-2xl font-black bg-primary gap-2" onClick={printReceipt}>
+                <Printer className="h-4 w-4" /> CETAK STRUK
+              </Button>
+              <Button variant="outline" className="h-12 rounded-2xl font-black gap-2 border-primary/20 text-primary hover:bg-primary/10">
+                <Mail className="h-4 w-4" /> EMAIL
+              </Button>
+            </div>
+
+            <Button variant="outline" className="w-full h-12 rounded-2xl font-black gap-2 border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/10">
+               <Share2 className="h-4 w-4" /> SHARE TO WHATSAPP
+            </Button>
+            
+            <button 
+              className="w-full py-2 text-[10px] font-black uppercase text-muted-foreground hover:text-primary transition-colors tracking-widest"
+              onClick={handleNextTransaction}
+            >
+              MULAI TRANSAKSI BARU
+            </button>
           </div>
         </DialogContent>
       </Dialog>
+
 
       <Dialog open={isTempProductOpen} onOpenChange={setIsTempProductOpen}>
         <DialogContent>

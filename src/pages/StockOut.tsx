@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpFromLine, Search, Minus } from "lucide-react";
 import { useProductStore } from "@/store/useProductStore";
+import { useRealtimeStore } from "@/store/useRealtimeStore";
 import { toast } from "sonner";
 
 export default function StockOut() {
@@ -16,7 +17,7 @@ export default function StockOut() {
 
   const foundProduct = products.find(p => p.barcode === barcode);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!foundProduct) {
       toast.error("Barcode tidak ditemukan!");
@@ -31,11 +32,23 @@ export default function StockOut() {
       return;
     }
 
-    updateStock(barcode, -amount);
-    setHistory([{ name: foundProduct.name, qty: amount, time: new Date().toLocaleTimeString() }, ...history]);
-    toast.success(`Berhasil mengurangi ${amount} stok untuk ${foundProduct.name}`);
-    setBarcode("");
-    setAmount(0);
+    try {
+      await updateStock(barcode, -amount);
+      setHistory([{ name: foundProduct.name, qty: amount, time: new Date().toLocaleTimeString() }, ...history]);
+      
+      const { addEvent } = useRealtimeStore.getState();
+      addEvent({
+        type: 'stock',
+        message: `Stok Keluar: ${foundProduct.name} (-${amount})`,
+        branch: 'Cabang Utama'
+      });
+      
+      toast.success(`Berhasil mengurangi ${amount} stok untuk ${foundProduct.name}`);
+      setBarcode("");
+      setAmount(0);
+    } catch (error) {
+      toast.error("Gagal memperbarui stok di server.");
+    }
   };
 
   return (
@@ -48,7 +61,7 @@ export default function StockOut() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="luxury-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Minus className="h-5 w-5 text-destructive" />
@@ -97,7 +110,7 @@ export default function StockOut() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="luxury-card">
           <CardHeader>
             <CardTitle>Riwayat Pengurangan (Sesi Ini)</CardTitle>
           </CardHeader>
@@ -119,7 +132,7 @@ export default function StockOut() {
                   </TableRow>
                 )}
                 {history.map((h, i) => (
-                  <TableRow key={i}>
+                  <TableRow key={i} className="table-row-hover">
                     <TableCell className="font-medium">{h.name}</TableCell>
                     <TableCell className="text-destructive font-bold">-{h.qty}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{h.time}</TableCell>

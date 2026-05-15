@@ -9,19 +9,23 @@ import { User, Shield, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Profile() {
-  const { user, login } = useAuthStore();
+  const { user, updateProfile } = useAuthStore();
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    phone: user?.phone || "0812-3456-7890",
-    address: user?.address || "Jl. Berkah No. 123, Jakarta Selatan",
+    phone: user?.phone || "",
+    address: user?.address || "",
     avatar: user?.avatar || "",
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (user) {
-      login({ ...user, ...formData });
-      toast.success("Profil berhasil diperbarui!");
+      try {
+        await updateProfile(formData);
+        toast.success("Profil berhasil diperbarui!");
+      } catch (error) {
+        toast.error("Gagal memperbarui profil.");
+      }
     }
   };
 
@@ -52,7 +56,7 @@ export default function Profile() {
             <div className="flex flex-wrap gap-3">
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 <Shield className="w-3 h-3" />
-                {user?.role}
+                {typeof user?.role === 'object' ? (user?.role as any).name : user?.role}
               </span>
               <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-800 text-slate-400 border border-white/5">
                 ID: {user?.id.substring(0, 8)}
